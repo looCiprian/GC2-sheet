@@ -71,6 +71,10 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 		}
 	}
 
+	if commandToExecute == "exit"{
+		Exit()
+	}
+
 	// Execute the command
 	lastCommand.Output = executeCommand(commandToExecute)
 

