@@ -23,7 +23,7 @@ var rootCmd = &cobra.Command{
 
 		configuration.SetOptions(credential, sheetId, driveId) // Comment this line if you want to hardcode the parameters
 		// configuration.SetOptions(<json>, <sheetId>, <driveId>) // Remove comment from this line if you want to hardcode the parameters.
-																	// Json string must but be escaped: " --> \" and \n --> \n. Example: {"test":"value\n"} --> "{\"test\":\"value\\n\"}"
+																	// Json string must but be escaped: " --> \" and \n --> \\n. Example: {"test":"value\n"} --> "{\"test\":\"value\\n\"}"
 		C2.Run()
 
 	},

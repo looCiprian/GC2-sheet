@@ -2,6 +2,13 @@
 
 GC2 (Google Command and Control) is a Command and Control application that allows an attacker to execute commands on the target machine using Google Sheet and exfiltrates data using Google Drive.
 
+# Why
+
+This program has been developed in order to provide a command and control that does not require any particular set up (like: a custom domain, VPS, CDN, ...) during Red Teaming activities.
+
+Furthermore, the program will interact only with Google's domains (*.google.com) to make detection more difficult.
+
+PS: Please don't upload the compiled binary on VirusTotal :)   
 
 # Set up
 
@@ -80,6 +87,12 @@ By sending the command *exit*, the program will delete itself from the target an
 PS: From *os* documentation: 
 *If a symlink was used to start the process, depending on the operating system, the result might be the symlink or the path it pointed to*. In this case the symlink is deleted.
 
+# Demo
+
+
+# Disclaimer
+
+The owner of this project is not responsible for any illegal usage of this program.
 
 # Support the project
 
