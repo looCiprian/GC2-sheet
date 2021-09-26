@@ -4,15 +4,17 @@ type options struct {
 	credential string
 	sheetId    string
 	driveId    string
+	debug	   bool
 }
 
 var command options
 
-func SetOptions(credential string, sheetId string, driveId string) {
+func SetOptions(credential string, sheetId string, driveId string, debug bool) {
 
 	command.credential = credential
 	command.sheetId = sheetId
 	command.driveId = driveId
+	command.debug = debug
 
 }
 
@@ -31,5 +33,11 @@ func GetOptionsSheetId() string {
 func GetOptionsDriveId() string {
 
 	return command.driveId
+
+}
+
+func GetOptionsDebug() bool {
+
+	return command.debug
 
 }

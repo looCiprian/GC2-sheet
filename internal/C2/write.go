@@ -2,8 +2,8 @@ package C2
 
 import (
 	"GC2-sheet/internal/configuration"
+	"GC2-sheet/internal/utils"
 	"google.golang.org/api/sheets/v4"
-	"log"
 	"strconv"
 )
 
@@ -31,7 +31,7 @@ func writeSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet, 
 	_, err := client.Spreadsheets.Values.Update(spreadSheet.SpreadSheetId, range2, valueRange).ValueInputOption(valueInputOption).Do()
 
 	if err != nil {
-		log.Fatalf("Cannot write on remote sheet: " + err.Error())
+		utils.LogFatalDebug("[-] Cannot write on remote sheet: " + err.Error())
 	}
 
 }

