@@ -1,5 +1,7 @@
 # GC2
 
+![](img/GC2.png)
+
 GC2 (Google Command and Control) is a Command and Control application that allows an attacker to execute commands on the target machine using Google Sheet and exfiltrates data using Google Drive.
 
 # Why
