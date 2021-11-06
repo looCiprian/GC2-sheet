@@ -31,7 +31,7 @@ func writeSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet, 
 	_, err := client.Spreadsheets.Values.Update(spreadSheet.SpreadSheetId, range2, valueRange).ValueInputOption(valueInputOption).Do()
 
 	if err != nil {
-		utils.LogFatalDebug("[-] Cannot write on remote sheet: " + err.Error())
+		utils.LogDebug("[-] Cannot write on remote sheet: " + err.Error())
 	}
 
 }

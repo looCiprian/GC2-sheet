@@ -4,34 +4,12 @@ import (
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
 	"google.golang.org/api/drive/v3"
-	"google.golang.org/api/sheets/v4"
 	"os/exec"
 	"runtime"
 	"strings"
 )
 
-func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *configuration.SpreadSheet)  {
-
-	// Get last command in the pool
-	lastCommand := utils.GetLastCommand(spreadSheet)
-
-	commandToExecute := ""
-	if lastCommand.Input == "" {
-		// Retrieve last command from the sheet
-		commandToExecute = readSheet(client, spreadSheet)
-	}
-
-	if commandToExecute == "" {
-		utils.LogDebug("No new command")
-		return
-	}
-	utils.LogDebug("New command: " + commandToExecute)
-
-	// Set new retrieved command
-	lastCommand.Input = commandToExecute
-
-	// Create new empty command before performing the current one (to avoid deadlock on command execution)
-	utils.CreateNewEmptyCommand(spreadSheet)
+func execute(spreadSheet *configuration.SpreadSheet, clientDrive *drive.Service, lastCommand *configuration.Commands, commandToExecute string)  {
 
 	// Checking for download command
 	if strings.HasPrefix(commandToExecute, "download"){
@@ -46,7 +24,6 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 			}else {
 				lastCommand.Output = "File Downloaded"
 			}
-			writeSheet(client, spreadSheet, lastCommand)
 			return
 		}
 	}
@@ -64,11 +41,11 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 			}else {
 				lastCommand.Output = "File Uploaded to: https://drive.google.com/drive/u/0/folders/" + spreadSheet.DriveId
 			}
-			writeSheet(client, spreadSheet, lastCommand)
 			return
 		}
 	}
 
+	// Checking for exit command
 	if commandToExecute == "exit"{
 		Exit()
 	}
@@ -76,10 +53,9 @@ func execute(client *sheets.Service, clientDrive *drive.Service, spreadSheet *co
 	// Execute the command
 	lastCommand.Output = executeCommand(commandToExecute)
 
-	// Write output
-	writeSheet(client, spreadSheet, lastCommand)
-
 	utils.LogDebug("Execution")
+
+	return
 }
 
 func executeCommand(commandToExecute string) string {
