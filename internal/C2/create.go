@@ -22,10 +22,27 @@ func createSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet)
 
 	batchupDateSpreadSheetRequest := &sheets.BatchUpdateSpreadsheetRequest{Requests: requests}
 
-	_, err1 := client.Spreadsheets.BatchUpdate(spreadSheet.SpreadSheetId, batchupDateSpreadSheetRequest).Do()
+	_, err := client.Spreadsheets.BatchUpdate(spreadSheet.SpreadSheetId, batchupDateSpreadSheetRequest).Do()
 
-	if err1 != nil {
-		utils.LogFatalDebug("Error creating new sheet: " + err1.Error())
+	if err != nil {
+		utils.LogFatalDebug("Error creating new sheet: " + err.Error())
+	}
+
+	writeRange := sheetName + "!D2:" + spreadSheet.CommandSheet.RangeTickerConfiguration
+	writeData := [][]interface{}{{"Delay configuration (sec)", spreadSheet.CommandSheet.Ticker}}
+
+	var valueRange = &sheets.ValueRange{
+		Range:  writeRange,
+		Values: writeData,
+	}
+
+	//var vr sheets.ValueRange
+	//myVal := []interface{}{"One"}
+	//vr.Values = append(vr.Values, myVal)
+
+	_, err = client.Spreadsheets.Values.Update(spreadSheet.SpreadSheetId, writeRange, valueRange).ValueInputOption("RAW").Do()
+	if err != nil {
+		utils.LogFatalDebug("Error writing default configuration: " + err.Error())
 	}
 
 }

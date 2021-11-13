@@ -8,7 +8,10 @@ import (
 	"strconv"
 )
 
-func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) string {
+func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) (string, int) {
+
+	var commandResult string
+	var tickerDelayResult int
 
 	spreadsheetId := spreadSheet.SpreadSheetId
 
@@ -22,21 +25,35 @@ func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) s
 	resp, err := client.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {
 		utils.LogDebug("Unable to retrieve data from sheet: " + err.Error())
-		return ""
+		commandResult = ""
 	}
 
 	if len(resp.Values) == 0 {
-		return ""
-		utils.LogDebug("No data found.")
+		commandResult = ""
 	} else {
-
 		// Get result
 		row := resp.Values[0]
-		var result string
-		result =  fmt.Sprintf("%v", row[0])
-		return result
-
+		commandResult =  fmt.Sprintf("%v", row[0])
 	}
 
-	return ""
+	readRange = sheetName + "!" + spreadSheet.CommandSheet.RangeTickerConfiguration
+	resp, err = client.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
+	if err != nil {
+		utils.LogDebug("Unable to retrieve data from sheet: " + err.Error())
+		tickerDelayResult = 0
+	}
+
+	if len(resp.Values) == 0 {
+		tickerDelayResult = 0
+	} else {
+		// Get result
+		row := resp.Values[0]
+		tickerDelayResultString :=  fmt.Sprintf("%v", row[0])
+		tickerDelayResult, err = strconv.Atoi(tickerDelayResultString)
+		if err != nil{
+			tickerDelayResult = 0
+		}
+	}
+
+	return commandResult, tickerDelayResult
 }

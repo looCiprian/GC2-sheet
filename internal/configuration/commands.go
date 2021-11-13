@@ -6,8 +6,10 @@ type SpreadSheet struct {
 	CommandSheet  Sheet
 }
 type Sheet struct {
-	Name              string // sheet name
-	CommandsExecution []Commands
+	Name                     string // sheet name
+	CommandsExecution        []Commands
+	Ticker                   int
+	RangeTickerConfiguration string
 }
 
 type Commands struct {

