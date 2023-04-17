@@ -12,8 +12,6 @@ This program has been developed in order to provide a command and control that d
 
 Furthermore, the program will interact only with Google's domains (*.google.com) to make detection more difficult.
 
-PS: Please don't upload the compiled binary on VirusTotal :)   
-
 # Set up
 
 1. **Build executable**
@@ -108,6 +106,10 @@ PS: From *os* documentation:
 # Disclaimer
 
 The owner of this project is not responsible for any illegal usage of this program.
+
+This is an open source project meant to be used with authorization to assess the security posture and for research purposes.
+
+The final user is solely responsible for their actions and decisions. The use of this project is at your own risk. The owner of this project does not accept any liability for any loss or damage caused by the use of this project.
 
 # Support the project
 
