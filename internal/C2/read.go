@@ -4,8 +4,9 @@ import (
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
 	"fmt"
-	"google.golang.org/api/sheets/v4"
 	"strconv"
+
+	"google.golang.org/api/sheets/v4"
 )
 
 func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) (string, int) {
@@ -28,12 +29,17 @@ func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) (
 		commandResult = ""
 	}
 
+	// Provide debug information for issue #5
+	if resp == nil {
+		utils.LogFatalDebug("Cannot read Sheet ID, verify if API have been enabled for service account: " + err.Error())
+	}
+
 	if len(resp.Values) == 0 {
 		commandResult = ""
 	} else {
 		// Get result
 		row := resp.Values[0]
-		commandResult =  fmt.Sprintf("%v", row[0])
+		commandResult = fmt.Sprintf("%v", row[0])
 	}
 
 	readRange = sheetName + "!" + spreadSheet.CommandSheet.RangeTickerConfiguration
@@ -48,9 +54,9 @@ func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) (
 	} else {
 		// Get result
 		row := resp.Values[0]
-		tickerDelayResultString :=  fmt.Sprintf("%v", row[0])
+		tickerDelayResultString := fmt.Sprintf("%v", row[0])
 		tickerDelayResult, err = strconv.Atoi(tickerDelayResultString)
-		if err != nil{
+		if err != nil {
 			tickerDelayResult = 0
 		}
 	}
