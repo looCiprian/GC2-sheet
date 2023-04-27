@@ -1,9 +1,10 @@
 package C2
 
 import (
-	"google.golang.org/api/drive/v3"
-	"path/filepath"
 	"os"
+	"path/filepath"
+
+	"google.golang.org/api/drive/v3"
 )
 
 func uploadFile(clientDrive *drive.Service, localFilePath string, driveFolderId string) error {

@@ -18,10 +18,10 @@ func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) (
 
 	sheetName := spreadSheet.CommandSheet.Name
 
-	rangeCell := utils.GetLastCommand(spreadSheet).RangeIn
-	rangeId := strconv.Itoa(utils.GetLastCommand(spreadSheet).RangeId)
+	rangeCell := getLastCommand(spreadSheet).RangeIn
+	rangeId := strconv.Itoa(getLastCommand(spreadSheet).RangeId)
 	// Example: Sheet1!A2
-	readRange := sheetName + rangeCell + rangeId
+	readRange := fmt.Sprintf("%s%s%s", sheetName, rangeCell, rangeId)
 
 	resp, err := client.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {
@@ -42,7 +42,7 @@ func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) (
 		commandResult = fmt.Sprintf("%v", row[0])
 	}
 
-	readRange = sheetName + "!" + spreadSheet.CommandSheet.RangeTickerConfiguration
+	readRange = fmt.Sprintf("%s!%s", sheetName, spreadSheet.CommandSheet.RangeTickerConfiguration)
 	resp, err = client.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {
 		utils.LogDebug("Unable to retrieve data from sheet: " + err.Error())
