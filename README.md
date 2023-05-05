@@ -103,6 +103,8 @@ PS: From *os* documentation:
 
 [Demo](https://youtu.be/n2dFlSaBBKo)
 
+[Demo](https://youtu.be/pLfuZnLcR1o) by [Grant Collins](https://www.youtube.com/@collinsinfosec)
+
 # Disclaimer
 
 The owner of this project is not responsible for any illegal usage of this program.
