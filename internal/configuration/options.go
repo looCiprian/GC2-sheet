@@ -4,7 +4,14 @@ type options struct {
 	credential string
 	sheetId    string
 	driveId    string
-	debug	   bool
+	debug      bool
+}
+
+type ConfigurationFile struct {
+	Key     string `yaml:"key"`
+	Sheet   string `yaml:"sheet"`
+	Drive   string `yaml:"drive"`
+	Verbose bool   `yaml:"verbose" default:"false"`
 }
 
 var command options

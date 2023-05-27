@@ -1,32 +1,33 @@
 package C2
 
 import (
-	"google.golang.org/api/drive/v3"
-	"io/ioutil"
+	"io"
 	"os"
+
+	"google.golang.org/api/drive/v3"
 )
 
 func downloadFile(clientDrive *drive.Service, fileId string, downloadPath string) error {
 
-	resp, err2 := clientDrive.Files.Get(fileId).Download()
-	if err2 != nil {
-		return err2
+	resp, err := clientDrive.Files.Get(fileId).Download()
+	if err != nil {
+		return err
 	}
 
 	defer resp.Body.Close()
 
-	fileDownloaded, err3 := ioutil.ReadAll(resp.Body)
-	if err3 != nil {
-		return err3
+	fileDownloaded, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
 	}
 
-	f, err4 := os.Create(downloadPath)
-	if err4 != nil {
-		return err4
+	f, err := os.Create(downloadPath)
+	if err != nil {
+		return err
 	}
-	_, err5 := f.Write(fileDownloaded)
-	if err5 != nil {
-		return err5
+	_, err = f.Write(fileDownloaded)
+	if err != nil {
+		return err
 	}
 
 	return nil

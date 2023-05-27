@@ -1,0 +1,4 @@
+key: "{\"your\":\"key\\n\"}" # // Json string must but be escaped as follow: " --> \" and \n --> \\n. Example: {"test":"value\n"} --> "{\"test\":\"value\\n\"}"
+sheet: "12345678900987654321" # your sheetID
+drive: "12345678901234567890"  # your driveID
+verbose: true # verbose true or false

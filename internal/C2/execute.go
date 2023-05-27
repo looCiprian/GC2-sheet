@@ -61,7 +61,6 @@ func execute(spreadSheet *configuration.SpreadSheet, clientDrive *drive.Service,
 func executeCommand(commandToExecute string) string {
 
 	var arguments []string
-	var out string
 	var outCommand []byte
 	var err error
 
@@ -82,10 +81,10 @@ func executeCommand(commandToExecute string) string {
 	}
 
 	if err != nil {
-		out = err.Error()
+		out := err.Error()
 		return out
 	}
 
-	out = string(outCommand)
+	out := string(outCommand)
 	return out
 }
