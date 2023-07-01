@@ -12,17 +12,19 @@ import (
 func writeSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet, lastCommand *configuration.Commands) {
 
 	sheetName := spreadSheet.CommandSheet.Name
-	rangeCell := lastCommand.RangeOut
+	rangeOut := lastCommand.RangeOut
+	rangeLog := lastCommand.RangeLog
 	rangeId := strconv.Itoa(lastCommand.RangeId)
 	// Example: Sheet1!A2
 
-	range2 := fmt.Sprintf("%s%s%s", sheetName, rangeCell, rangeId)
+	range2 := fmt.Sprintf("%s!%s%s:%s%s", sheetName, rangeOut, rangeId, rangeLog, rangeId)
 
 	outputCommand := lastCommand.Output
 	var output [][]interface{}
-	output = append(output, make([]interface{}, 1))
+	output = append(output, make([]interface{}, 2))
 
 	output[0][0] = outputCommand
+	output[0][1] = utils.GetCurrentDate()
 
 	valueRange := &sheets.ValueRange{
 		Range:  range2,

@@ -21,7 +21,7 @@ func readSheet(client *sheets.Service, spreadSheet *configuration.SpreadSheet) (
 	rangeCell := getLastCommand(spreadSheet).RangeIn
 	rangeId := strconv.Itoa(getLastCommand(spreadSheet).RangeId)
 	// Example: Sheet1!A2
-	readRange := fmt.Sprintf("%s%s%s", sheetName, rangeCell, rangeId)
+	readRange := fmt.Sprintf("%s!%s%s", sheetName, rangeCell, rangeId)
 
 	resp, err := client.Spreadsheets.Values.Get(spreadsheetId, readRange).Do()
 	if err != nil {

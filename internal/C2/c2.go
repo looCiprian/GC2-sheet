@@ -115,8 +115,9 @@ func addNewEmptyCommand(spreadSheet *configuration.SpreadSheet) {
 	if lastCommand == nil {
 		// Creating first command
 		command = configuration.Commands{
-			RangeIn:  "!A",
-			RangeOut: "!B",
+			RangeIn:  "A",
+			RangeOut: "B",
+			RangeLog: "C",
 			RangeId:  1,
 			Input:    "",
 			Output:   "",
@@ -125,8 +126,9 @@ func addNewEmptyCommand(spreadSheet *configuration.SpreadSheet) {
 
 		// Creating new empty command
 		command = configuration.Commands{
-			RangeIn:  "!A",
-			RangeOut: "!B",
+			RangeIn:  "A",
+			RangeOut: "B",
+			RangeLog: "C",
 			RangeId:  lastCommand.RangeId + 1,
 			Input:    "",
 			Output:   "",

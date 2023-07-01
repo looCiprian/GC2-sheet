@@ -15,6 +15,7 @@ type Sheet struct {
 type Commands struct {
 	RangeIn  string // Example !A
 	RangeOut string
+	RangeLog string
 	RangeId  int // Example 1
 	Input    string
 	Output   string
