@@ -146,3 +146,30 @@ The final user is solely responsible for their actions and decisions. The use of
 # Support the project
 
 **Pull request** or [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate?hosted_button_id=8EWYXPED4ZU5E)
+
+# Articles related to this tool
+[Google](https://services.google.com/fh/files/blogs/gcat_threathorizons_full_apr2023.pdf)
+
+[The Hacker News](https://thehackernews.com/2023/04/google-uncovers-apt41s-use-of-open.html)
+
+[Reddit](https://www.reddit.com/r/cybersecurity/comments/12u3wvl/top_cybersecurity_stories_for_the_week_of_041723/)
+
+[LinkedIn](https://www.linkedin.com/pulse/hacking-tutorial-google-sheets-command-control-c2-server-maxwell-zhou/)
+
+[Bleeping Computer](https://www.bleepingcomputer.com/news/security/hackers-abuse-google-command-and-control-red-team-tool-in-attacks/)
+
+[Security Affairs](https://securityaffairs.com/144915/apt/china-apt41-tool-gc2.html)
+
+[Icrewplay](https://tech.icrewplay.com/gc2-strumento-google-gruppo-cinese-apt41/?utm_content=cmp-true)
+
+[Information Security Buzz](https://informationsecuritybuzz.com/google-uncovers-apt41-tools-targeting-media-and-job-sites/)
+
+[Hackdig](http://en.hackdig.com/04/477620.htm)
+
+[Hakin9](https://hakin9.org/gc2-command-and-control-application/)
+
+[RedPacketSecurity](https://www.redpacketsecurity.com/gc2-a-command-and-control-application-that-allows-an-attacker-to-execute-commands-on-the-target-machine-using-google-sheet-and-exfiltrate-data-using-google-drive/)
+
+[Cyware](https://cyware.com/news/apt41-uses-open-source-red-teaming-tool-gc2-9eaecb18)
+
+[Kitploit](https://www.kitploit.com/2021/10/gc2-command-and-control-application.html)
