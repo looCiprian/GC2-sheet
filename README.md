@@ -55,6 +55,7 @@ Furthermore, the program will interact only with Google's domains (*.google.com)
     key: # escaped JSON key
     sheet: # sheetID
     drive: # driveID
+    proxy: # proxy string
     verbose: # verbose true or false
     ```
 
@@ -72,7 +73,7 @@ Furthermore, the program will interact only with Google's domains (*.google.com)
     ./gc2-sheet
     ```
 
-    Otherwise, it is possible to use the command options after compiling the C2:
+    Otherwise, it is possible to use the command options after compiling the C2 (this option will be deprecated soon):
 
     ```
     gc2-sheet --key <GCP service account credential file .JSON > --sheet <Google sheet ID> --drive <Google drive ID>

