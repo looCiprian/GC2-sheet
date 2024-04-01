@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"golang.org/x/oauth2"
 	"google.golang.org/api/drive/v3"
 
 	"google.golang.org/api/option"
@@ -33,8 +34,8 @@ type spreadSheet struct {
 // Creating client for Google Sheet
 func AuthenticateSheet() (context.Context, *sheets.Service) {
 
-	ctx := context.Background()
-	client, err := sheets.NewService(ctx, option.WithHTTPClient(customHTTPClient()))
+	ctx, customHTTPClient := customHTTPClient()
+	client, err := sheets.NewService(ctx, option.WithHTTPClient(customHTTPClient))
 	if err != nil {
 		utils.LogFatalDebug("[-] Authentication failed Google Sheet")
 	}
@@ -45,8 +46,8 @@ func AuthenticateSheet() (context.Context, *sheets.Service) {
 // Creating client for Google Drive
 func AuthenticateDrive() (context.Context, *drive.Service) {
 
-	ctx := context.Background()
-	client, err := drive.NewService(ctx, option.WithHTTPClient(customHTTPClient()))
+	ctx, customHTTPClient := customHTTPClient()
+	client, err := drive.NewService(ctx, option.WithHTTPClient(customHTTPClient))
 	if err != nil {
 		utils.LogFatalDebug("[-] Authentication failed Google Drive")
 	}
@@ -54,7 +55,7 @@ func AuthenticateDrive() (context.Context, *drive.Service) {
 }
 
 // Return custom HTTP Client for oauth and proxy option
-func customHTTPClient() *http.Client {
+func customHTTPClient() (context.Context, *http.Client) {
 
 	proxyUrl := configuration.GetOptionsProxy()
 
@@ -65,7 +66,10 @@ func customHTTPClient() *http.Client {
 		transport.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	myTransport, _ := GHTTP.NewTransport(context.Background(), transport, option.WithScopes(
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{Transport: transport})
+
+	myTransport, _ := GHTTP.NewTransport(ctx, transport, option.WithScopes(
 		"https://www.googleapis.com/auth/drive",
 		"https://www.googleapis.com/auth/drive.file",
 		"https://www.googleapis.com/auth/drive.readonly",
@@ -73,7 +77,7 @@ func customHTTPClient() *http.Client {
 		"https://www.googleapis.com/auth/spreadsheets.readonly",
 	), option.WithCredentialsJSON([]byte(configuration.GetOptionsCredential())))
 
-	return &http.Client{Transport: myTransport}
+	return ctx, &http.Client{Transport: myTransport}
 }
 
 func GoogleInit() *Google {
