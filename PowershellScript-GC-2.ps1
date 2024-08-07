@@ -18,6 +18,6 @@ iwr https://github.com/looCiprian/GC2-sheet/archive/refs/heads/master.zip -o mas
 expand-archive .\master.zip;
 rm -r -force master.zip;
 cd .\master\GC2-sheet-master;
-iwr "http://$myUrl/$myKey" -o $myKey;
+iwr http://$myUrl/$myKey -usebasicparsing -o $myKey;
 go build gc2-sheet.go;
 .\gc2-sheet -k $myKey -s $mySheetId -d $myDriveId
