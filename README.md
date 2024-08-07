@@ -6,6 +6,10 @@
 
 GC2 (Google Command and Control) is a Command and Control application that allows an attacker to execute commands on the target machine using Google Sheet and exfiltrates data using Google Drive.
 
+# My Contribution
+
+A Powershell script that downloads go, adds it the user's path, downloads the zip from the repository "looCiprian/GC2-sheet", builds the executable, and runs gc2-sheet. Note: requires a web server to host the #MY_KEY_JSON file to Invoke-Webrequest down, #MY_SHEET_ID, and #MY_DRIVE_ID to be incorporated into the PS1.
+
 # Why
 
 This project has been developed to provide a command and control that does not require any particular set up (like: a custom domain, VPS, CDN, ...) during Red Teaming activities.
