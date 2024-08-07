@@ -73,7 +73,7 @@ Furthermore, the program will interact only with Google's domains (*.google.com)
 
    If you have a web server hosting your MY_KEY_JSON file and running on Windows, use:
    ```Powershell
-   irm http://$myUrl/PowershellScript-GC-2.ps1 -usebasicparsing | iex
+   irm "http://$myUrl/PowershellScript-GC-2.ps1" | iex
    ```
 
    Or Linux the below commands. If the configuration file has been modified just run:
