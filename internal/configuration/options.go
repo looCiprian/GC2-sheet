@@ -1,50 +1,94 @@
 package configuration
 
-import "net/url"
+import (
+	"net/url"
+)
 
 type options struct {
-	credential string
-	sheetId    string
-	driveId    string
-	proxy      *url.URL
-	debug      bool
-}
-
-type ConfigurationFile struct {
-	Key     string `yaml:"key"`
-	Sheet   string `yaml:"sheet"`
-	Drive   string `yaml:"drive"`
-	Proxy   string `yaml:"proxy"`
-	Verbose bool   `yaml:"verbose" default:"false"`
+	commandService          ConnectorService
+	fileSystemService       ConnectorService
+	googleServiceAccountKey string
+	googleSheetID           string
+	googleDriveID           string
+	microsoftTenantID       string
+	microsoftClientID       string
+	microsoftClientSecret   string
+	microsoftSiteID         string
+	rowID                   int
+	proxy                   *url.URL
+	verbose                 bool
 }
 
 var command options
 
-func SetOptions(credential string, sheetId string, driveId string, proxy *url.URL, debug bool) {
+func SetOptions(
+	commandService,
+	fileSystemService,
+	googleServiceAccountKey,
+	googleSheetID,
+	googleDriveID,
+	microsoftTenantID,
+	microsoftClientID,
+	microsoftClientSecret,
+	microsoftSiteID string,
+	rowID int,
+	proxy *url.URL,
+	verbose bool,
+) {
+	switch commandService {
+	case Google.String():
+		command.commandService = Google
+	case Microsoft.String():
+		command.commandService = Microsoft
+	}
 
-	command.credential = credential
-	command.sheetId = sheetId
-	command.driveId = driveId
+	switch fileSystemService {
+	case Google.String():
+		command.fileSystemService = Google
+	case Microsoft.String():
+		command.fileSystemService = Microsoft
+	}
+
+	command.googleServiceAccountKey = googleServiceAccountKey
+	command.googleSheetID = googleSheetID
+	command.googleDriveID = googleDriveID
+	command.microsoftTenantID = microsoftTenantID
+	command.microsoftClientID = microsoftClientID
+	command.microsoftClientSecret = microsoftClientSecret
+	command.microsoftSiteID = microsoftSiteID
 	command.proxy = proxy
-	command.debug = debug
+	command.rowID = rowID
+	command.verbose = verbose
 
 }
 
-func GetOptionsCredential() string {
+func GetOptionsCommandService() ConnectorService { return command.commandService }
 
-	return command.credential
+func GetOptionsFileSystemService() ConnectorService { return command.fileSystemService }
+
+func NeedsGoogleConnectorService() bool {
+	return command.commandService == Google || command.fileSystemService == Google
+}
+
+func NeedsMicrosoftConnectorService() bool {
+	return command.commandService == Microsoft || command.fileSystemService == Microsoft
+}
+
+func GetOptionsGoogleServiceAccountKey() string {
+
+	return command.googleServiceAccountKey
 
 }
 
-func GetOptionsSheetId() string {
+func GetOptionsGoogleSheetID() string {
 
-	return command.sheetId
+	return command.googleSheetID
 
 }
 
-func GetOptionsDriveId() string {
+func GetOptionsGoogleDriveID() string {
 
-	return command.driveId
+	return command.googleDriveID
 
 }
 
@@ -56,6 +100,23 @@ func GetOptionsProxy() *url.URL {
 
 func GetOptionsDebug() bool {
 
-	return command.debug
+	return command.verbose
 
+}
+
+func GetRowId() int {
+	return command.rowID
+}
+
+func GetOptionsMicrosoftTenantID() string {
+	return command.microsoftTenantID
+}
+func GetOptionsMicrosoftClientID() string {
+	return command.microsoftClientID
+}
+func GetOptionsMicrosoftClientSecret() string {
+	return command.microsoftClientSecret
+}
+func GetOptionsMicrosoftSiteID() string {
+	return command.microsoftSiteID
 }

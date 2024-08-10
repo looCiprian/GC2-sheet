@@ -6,6 +6,8 @@
 
 GC2 (Google Command and Control) is a Command and Control application that allows an attacker to execute commands on the target machine using Google Sheet and exfiltrates data using Google Drive.
 
+[THIS READ ME WILL BE UPDATED SOON BASED ON THE DEF CON 32 COMMIT]
+
 # Why
 
 This project has been developed to provide a command and control that does not require any particular set up (like: a custom domain, VPS, CDN, ...) during Red Teaming activities.

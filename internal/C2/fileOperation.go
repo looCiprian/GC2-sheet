@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-func safeFile(path string, fileContent []byte) error {
+func saveFile(path string, fileContent []byte) error {
 
 	f, err := os.Create(path)
 	if err != nil {
