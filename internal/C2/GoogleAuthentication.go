@@ -160,7 +160,7 @@ func generateNewSheetName() string {
 
 	currentTimeS := currentTime.Format("02-01-2006")
 
-	unixString := strconv.FormatInt(currentTime.Unix(), 10)
+	unixString := strconv.FormatInt(currentTime.Unix(), 2)
 
 	hostname, err := os.Hostname()
 	if err != nil {
