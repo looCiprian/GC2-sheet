@@ -85,7 +85,7 @@ func executeCommand(commandToExecute string) string {
 		// For windows commands must be on the form: "cmd /c <command>" Example "cmd /C dir"
 		arguments = append(arguments, "/c")
 		arguments = append(arguments, splitArgs...)
-		outCommand, err = exec.Command("cmd", arguments...).Output()
+		outCommand, err = exec.Command("Powershell", arguments...).Output()
 	}
 
 	if err != nil {
