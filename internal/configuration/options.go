@@ -104,7 +104,7 @@ func GetOptionsDebug() bool {
 
 }
 
-func GetRowId() int {
+func GetSourceFirstCommandIndex() int {
 	return command.rowID
 }
 

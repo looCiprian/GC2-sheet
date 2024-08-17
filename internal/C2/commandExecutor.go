@@ -10,26 +10,8 @@ var ErrorUnableToPushCommand = fmt.Errorf(
 )
 
 type CommandExecutor interface {
-	pullCommandAndTicker() (string, int, error)
-	pushOutput(*Command) error
-	getLastCommand() *Command
-	appendEmptyCommand()
-}
-
-type Command struct {
-	Ticker int    // Ticker delay for polling
-	RowId  int    // row number starting from 1
-	Input  string // command to execute
-	Output string // command output
+	pullCommandAndTicker(index int) (string, int, error)
+	pushOutput(index int, output string) error
 }
 
 const DefaultTickerDuration = 10
-
-func NewCommand(rowId int) *Command {
-	return &Command{
-		Ticker: DefaultTickerDuration,
-		RowId:  rowId,
-		Input:  "",
-		Output: "",
-	}
-}

