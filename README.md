@@ -243,6 +243,9 @@ The final user is solely responsible for their actions and decisions. The use of
 
 **Pull request** or [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/donate?hosted_button_id=8EWYXPED4ZU5E)
 
+## Contributors
+[Paolo Conizzoli](https://github.com/paoloconi96)
+
 # Articles related to this tool
 
 [DEF CON 32](https://forum.defcon.org/node/249630); [DEF CON 32 Reddit](https://www.reddit.com/r/Defcon/comments/tx7tg2/mega_def_con_info_for_your_planning_enjoyment/)
@@ -272,3 +275,7 @@ The final user is solely responsible for their actions and decisions. The use of
 [Cyware](https://cyware.com/news/apt41-uses-open-source-red-teaming-tool-gc2-9eaecb18)
 
 [Kitploit](https://www.kitploit.com/2021/10/gc2-command-and-control-application.html)
+
+News mentioning malware using the same concept:
+[The Hacker News - Voldemort](https://thehackernews.com/2024/08/cyberattackers-exploit-google-sheets.html)
+[Bleeping Computer - Voldemort](https://www.bleepingcomputer.com/news/security/new-voldemort-malware-abuses-google-sheets-to-store-stolen-data/)
