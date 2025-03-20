@@ -25,6 +25,7 @@ func Run() {
 				elementIndex := nextElementIndex
 
 				// command to execute (can be ""), and delay for the ticker
+				// TODO: implement the possibility to have a range for the ticker to introduce random delay between requests (e.g., 5-10)
 				var newTicker int
 				commandToExecute, newTicker, err = commandExecutor.pullCommandAndTicker(elementIndex)
 				// Get new ticker value and update Ticker if not 0
