@@ -1,6 +1,7 @@
 # Go parameters
 GO_CMD=go
-GO_BUILD=$(GO_CMD) build
+# GO_BUILD=$(GO_CMD) build
+GO_BUILD = CGO_ENABLED=0 $(GO_CMD) build -a -ldflags '-s -w'
 BINARY_NAME=GC2
 
 # List of target OS/Arch combinations
