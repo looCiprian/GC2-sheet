@@ -54,7 +54,7 @@ func performCommandExecution(fs FileSystem, commandToExecute string) (*string, e
 		defer func(file *os.File) {
 			err := file.Close()
 			if err != nil {
-				log.Printf("An error occured while closing the file during performCommandExecution: %s\n", err)
+				log.Printf("An error occurred while closing the file during performCommandExecution: %s\n", err)
 			}
 		}(file)
 		if err != nil {
